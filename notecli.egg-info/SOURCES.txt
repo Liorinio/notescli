@@ -1,0 +1,14 @@
+notecli.py
+notecli_commands.py
+pyproject.toml
+app_types/NoteBase.py
+app_types/NoteData.py
+app_types/NoteType.py
+app_types/NoteTypes.py
+app_types/__init__.py
+notecli.egg-info/PKG-INFO
+notecli.egg-info/SOURCES.txt
+notecli.egg-info/dependency_links.txt
+notecli.egg-info/entry_points.txt
+notecli.egg-info/requires.txt
+notecli.egg-info/top_level.txt
