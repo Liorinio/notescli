@@ -1,3 +1,0 @@
-app_types
-notecli
-notecli_commands
