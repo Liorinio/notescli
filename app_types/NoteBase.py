@@ -11,11 +11,14 @@ class NoteBase(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    def to_str(self):
-        description: str = ""
-        description += f'note_id: {self.note_type.name} ' + f'title: {self.title} ' + f'note_type: {self.note_type.name} '
-        description += f'created_at: {self.created_at} ' + f'updated_at: {self.updated_at} '
-        return description
+    def to_str(self) -> str:
+        return (
+            f'note_id: {self.note_id} '
+            f'title: {self.title} '
+            f'note_type: {self.note_type.name} '
+            f'created_at: {self.created_at} '
+            f'updated_at: {self.updated_at} '
+        )
 
     def serialize(self) -> serializedDict:
         return {
@@ -27,7 +30,7 @@ class NoteBase(BaseModel):
         }
 
     @classmethod
-    def deserialize(cls, data: unionOfData|NoteData) -> NoteBase:
+    def deserialize(cls, data: serializedDict) -> NoteBase:
         return NoteBase(
             note_id=data['note_id'],
             title=data['title'],
