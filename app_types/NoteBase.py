@@ -13,8 +13,8 @@ class NoteBase(BaseModel):
 
     def to_str(self):
         description: str = ""
-        description += f'note_id: {self.note_type.name}' + f'title: {self.title}' + f'note_type: {self.note_type.name}'
-        description += f'created_at: {self.created_at}' + f'updated_at: {self.updated_at}'
+        description += f'note_id: {self.note_type.name} ' + f'title: {self.title} ' + f'note_type: {self.note_type.name} '
+        description += f'created_at: {self.created_at} ' + f'updated_at: {self.updated_at} '
         return description
 
     def serialize(self) -> serializedDict:
