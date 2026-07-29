@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import Union, cast, Any
 from uuid import uuid4
+import logging
 from app_types.NoteBase import NoteBase
 from app_types.NoteSchemas import SimpleData, ListData, BookMarkData, unionOfData, NoteData
 from app_types.NoteType import NoteType, serializedDict
@@ -14,17 +15,26 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
 
     if note_type == NoteType.SIMPLE:
         if not isinstance(content, str):
+            logging.error("Invalid type of content, required a string")
             raise TypeError("Content must be a string")
+
+        logging.info("A Simple note was created")
         return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
                           updated_at=creation_date, content=content)
     elif note_type == NoteType.BOOKMARK:
         if not isinstance(content, str):
+            logging.error("Invalid type of content, required a string")
             raise TypeError("Content must be a string")
+
+        logging.info("A BookMark note was created")
         return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
                           updated_at=creation_date, content=content)
     else:
         if not isinstance(content, list):
+            logging.error("Invalid type of content, required a list")
             raise TypeError("Content must be a list")
+
+        logging.info("A List note was created")
         return NoteList(note_id=node_id, title=title, note_type=note_type, created_at=creation_date,
                         updated_at=creation_date, content=content)
 
@@ -36,6 +46,7 @@ def __json_to_dict__(db_path: str) -> list[serializedDict]:
         try:
             return json.load(file)
         except json.decoder.JSONDecodeError:
+            logging.error("the string does not conform to standard JSON format rules")
             return []
 
 def __add_to_db__(new_data:serializedDict, db_path: str) -> None:
@@ -55,7 +66,7 @@ def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
     __add_to_db__(note, "db.json")
 
 
-def parse_note2(db_path: str) -> list[NoteBase]:
+def parse_note(db_path: str) -> list[NoteBase]:
     note_classes: dict[NoteType, type[NoteBase]] = {
         NoteType.SIMPLE: NoteSimple,
         NoteType.BOOKMARK: NoteBookMark,
@@ -63,12 +74,13 @@ def parse_note2(db_path: str) -> list[NoteBase]:
     }
 
     if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
+        logging.error(f"there is no file at the path: ${db_path}")
         return []
 
     with open(db_path, "r") as file:
         raw: list[NoteData | unionOfData] = json.load(file)
 
-    notes = []
+    notes: list[NoteBase] = []
 
     for note in raw:
         note_type = NoteType[note["note_type"]]
@@ -79,6 +91,6 @@ def parse_note2(db_path: str) -> list[NoteBase]:
 
 
 def print_all():
-    data = parse_note2("db.json")
+    data = parse_note("db.json")
     for note in data:
         print(note.to_str())
