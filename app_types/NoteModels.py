@@ -2,7 +2,7 @@ from typing import Any, Self
 import requests
 from app_types.NoteBase import NoteBase
 from app_types.NoteType import serializedDict
-from app_types.NoteData import NoteData, unionOfData
+from app_types.NoteSchemas import NoteData, unionOfData
 
 
 class NoteSimple(NoteBase):
@@ -25,11 +25,7 @@ class NoteSimple(NoteBase):
             raise TypeError("NoteSimple must contain a string content")
 
         base = NoteBase.deserialize(data)
-
-        return cls(
-            **base.model_dump(),
-            content=data["content"]
-        )
+        return cls(**base.model_dump(),content=data["content"])
 
 class NoteList(NoteBase):
     content: list[str]
@@ -52,10 +48,7 @@ class NoteList(NoteBase):
 
         base = NoteBase.deserialize(data)
 
-        return cls(
-            **base.model_dump(),
-            content=data["content"]
-        )
+        return cls(**base.model_dump(),content=data["content"])
 
 
 class NoteBookMark(NoteBase):
@@ -79,10 +72,7 @@ class NoteBookMark(NoteBase):
 
         base = NoteBase.deserialize(data)
 
-        return cls(
-            **base.model_dump(),
-            content_site_url=data["content"]
-        )
+        return cls(**base.model_dump(),content_site_url=data["content"])
 
     def open_url(self) -> tuple[int, Any] | None:
         url = self.content_site_url.split("://")

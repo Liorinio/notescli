@@ -4,9 +4,9 @@ from datetime import datetime
 from typing import Union, cast, Any
 from uuid import uuid4
 from app_types.NoteBase import NoteBase
-from app_types.NoteData import SimpleData, ListData, BookMarkData, unionOfData, NoteData
+from app_types.NoteSchemas import SimpleData, ListData, BookMarkData, unionOfData, NoteData
 from app_types.NoteType import NoteType, serializedDict
-from app_types.NoteTypes import NoteSimple, NoteList, NoteBookMark
+from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
 
 def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList| NoteBookMark:
     node_id: int = uuid4().int

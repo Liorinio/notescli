@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TypedDict
 from app_types.NoteType import NoteType
 
