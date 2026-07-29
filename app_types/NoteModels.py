@@ -1,9 +1,12 @@
+import logging
 from typing import Any, Self
 import requests
 from app_types.NoteBase import NoteBase
 from app_types.NoteType import serializedDict
 from app_types.NoteSchemas import NoteData, unionOfData
 
+
+logger = logging.getLogger(__name__)
 
 class NoteSimple(NoteBase):
     content: str
@@ -19,6 +22,7 @@ class NoteSimple(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if "content" not in data:
+            logger.error("There is no content in this note")
             raise TypeError("NoteSimple requires content")
 
         if not isinstance(data["content"], str):
@@ -41,6 +45,7 @@ class NoteList(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if "content" not in data:
+            logger.error("There is no content in this note")
             raise TypeError("NoteSimple requires content")
 
         if not isinstance(data["content"], str):
@@ -65,6 +70,7 @@ class NoteBookMark(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if "content" not in data:
+            logger.error("There is no content in this note")
             raise TypeError("NoteSimple requires content")
 
         if not isinstance(data["content"], str):
@@ -74,6 +80,9 @@ class NoteBookMark(NoteBase):
 
         return cls(**base.model_dump(),content_site_url=data["content"])
 
+
+    # Checks if the content is actual url
+    # If so, returns a pair of status code and response body of the response, else return none
     def open_url(self) -> tuple[int, Any] | None:
         url = self.content_site_url.split("://")
         if url[0] == "http" or url[0] == "https":

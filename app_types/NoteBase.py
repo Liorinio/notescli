@@ -1,9 +1,7 @@
 from datetime import datetime
-import logging
 from pydantic import BaseModel
 from app_types.NoteSchemas import NoteData, unionOfData
 from app_types.NoteType import NoteType, serializedDict
-
 
 class NoteBase(BaseModel):
     note_id: int
