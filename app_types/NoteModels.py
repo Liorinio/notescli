@@ -9,7 +9,7 @@ class NoteSimple(NoteBase):
     content: str
 
     def to_str(self):
-        return NoteBase.to_str(self) + f'content: {self.content}'
+        return NoteBase.to_str(self) + f', content: {self.content}'
 
     def serialize(self) -> serializedDict:
         note_dict: serializedDict = super().serialize()
@@ -31,7 +31,7 @@ class NoteList(NoteBase):
     content: list[str]
 
     def to_str(self):
-        return NoteBase.to_str(self) + f'content: {self.content}'
+        return NoteBase.to_str(self) + f', content: {self.content}'
 
     def serialize(self) -> serializedDict:
         note_dict: serializedDict = super().serialize()
@@ -55,7 +55,7 @@ class NoteBookMark(NoteBase):
     content_site_url: str
 
     def to_str(self):
-        return NoteBase.to_str(self) + f'content: {self.content_site_url}'
+        return NoteBase.to_str(self) + f', content: {self.content_site_url}'
 
     def serialize(self) -> serializedDict:
         note_dict: serializedDict = super().serialize()

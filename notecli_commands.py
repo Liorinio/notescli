@@ -66,7 +66,7 @@ def parse_note2(db_path: str) -> list[NoteBase]:
         return []
 
     with open(db_path, "r") as file:
-        raw: list[NoteData | SimpleData | ListData | BookMarkData] = json.load(file)
+        raw: list[NoteData | unionOfData] = json.load(file)
 
     notes = []
 
@@ -78,37 +78,7 @@ def parse_note2(db_path: str) -> list[NoteBase]:
     return notes
 
 
-
-def __parse_notes__(db_path: str) -> list[unionOfData]:
-    data: list[unionOfData] = []
-
-    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
-        with open(db_path, "r") as file:
-            raw:Any = json.load(file)
-
-        for note in raw:
-            note_type: NoteType = NoteType[note["note_type"]]
-            match note_type:
-                case NoteType.SIMPLE:
-                    data.append(cast(SimpleData, note))
-                case NoteType.BOOKMARK:
-                    data.append(cast(BookMarkData, note))
-                case NoteType.LISTNOTE:
-                    data.append(cast(ListData, note))
-    return data
-
 def print_all():
-    data: list[unionOfData] = __parse_notes__("db.json")
-    for note_data in data:
-        note_type: NoteType = NoteType[note_data["note_type"]]
-        if note_type == NoteType.SIMPLE:
-            print(NoteSimple.deserialize(note_data).to_str()+"\n")
-        elif note_type == NoteType.BOOKMARK:
-            print(NoteBookMark.deserialize(note_data).to_str()+"\n")
-        else:
-            print(NoteList.deserialize(note_data).to_str()+"\n")
-
-def print_all2():
     data = parse_note2("db.json")
     for note in data:
         print(note.to_str())

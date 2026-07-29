@@ -15,11 +15,11 @@ class NoteBase(BaseModel):
 
     def to_str(self) -> str:
         return (
-            f'note_id: {self.note_id} '
-            f'title: {self.title} '
-            f'note_type: {self.note_type.name} '
-            f'created_at: {self.created_at} '
-            f'updated_at: {self.updated_at} '
+            f'note_id: {self.note_id}, '
+            f'title: {self.title}, '
+            f'note_type: {self.note_type.name}, '
+            f'created_at: {self.created_at}, '
+            f'updated_at: {self.updated_at}'
         )
 
     def serialize(self) -> serializedDict:
