@@ -7,8 +7,8 @@ class NoteData(TypedDict):
     note_id: int
     title: str
     note_type: NoteType
-    created_at: datetime
-    updated_at: datetime
+    created_at: str
+    updated_at: str
 
 class BookMarkData(NoteData):
     content_site_url: str

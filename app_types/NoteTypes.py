@@ -12,15 +12,24 @@ class NoteSimple(NoteBase):
         return NoteBase.to_str(self) + f'content: {self.content}'
 
     def serialize(self) -> serializedDict:
-        note_dict: serializedDict = NoteBase.serialize(self)
+        note_dict: serializedDict = super().serialize()
         note_dict['content'] = self.content
         return note_dict
 
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
+        if "content" not in data:
+            raise TypeError("NoteSimple requires content")
+
         if not isinstance(data["content"], str):
             raise TypeError("NoteSimple must contain a string content")
-        return cls(**super().deserialize(data).model_dump(), content=data["content"])
+
+        base = NoteBase.deserialize(data)
+
+        return cls(
+            **base.model_dump(),
+            content=data["content"]
+        )
 
 class NoteList(NoteBase):
     content: list[str]
@@ -29,15 +38,25 @@ class NoteList(NoteBase):
         return NoteBase.to_str(self) + f'content: {self.content}'
 
     def serialize(self) -> serializedDict:
-        note_dict: serializedDict = NoteBase.serialize(self)
+        note_dict: serializedDict = super().serialize()
         note_dict['content'] = self.content
         return note_dict
 
     @classmethod
-    def deserialize(cls, data: NoteData | unionOfData):
-        if not isinstance(data["content"], list):
+    def deserialize(cls, data: NoteData | unionOfData) -> Self:
+        if "content" not in data:
+            raise TypeError("NoteSimple requires content")
+
+        if not isinstance(data["content"], str):
             raise TypeError("NoteList must contain a list of string as content")
-        return cls(**super().deserialize(data).model_dump(), content=data["content"])
+
+        base = NoteBase.deserialize(data)
+
+        return cls(
+            **base.model_dump(),
+            content=data["content"]
+        )
+
 
 class NoteBookMark(NoteBase):
     content_site_url: str
@@ -46,15 +65,24 @@ class NoteBookMark(NoteBase):
         return NoteBase.to_str(self) + f'content: {self.content_site_url}'
 
     def serialize(self) -> serializedDict:
-        note_dict: serializedDict = NoteBase.serialize(self)
+        note_dict: serializedDict = super().serialize()
         note_dict['content'] = self.content_site_url
         return note_dict
 
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
+        if "content" not in data:
+            raise TypeError("NoteSimple requires content")
+
         if not isinstance(data["content"], str):
-            raise TypeError("NoteBookMark must contain a string content")
-        return cls(**super().deserialize(data).model_dump(), content_site_url=data["content"])
+            raise TypeError("NoteList must contain a list of string as content")
+
+        base = NoteBase.deserialize(data)
+
+        return cls(
+            **base.model_dump(),
+            content_site_url=data["content"]
+        )
 
     def open_url(self) -> tuple[int, Any] | None:
         url = self.content_site_url.split("://")

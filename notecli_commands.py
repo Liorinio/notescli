@@ -66,9 +66,16 @@ def parse_note2(db_path: str) -> list[NoteBase]:
         return []
 
     with open(db_path, "r") as file:
-        raw: list[NoteData] = json.load(file)
+        raw: list[NoteData | SimpleData | ListData | BookMarkData] = json.load(file)
 
-    return [note_classes[note["note_type"]].deserialize(note) for note in raw]
+    notes = []
+
+    for note in raw:
+        note_type = NoteType[note["note_type"]]
+        note_class = note_classes[note_type]
+        notes.append(note_class.deserialize(note))
+
+    return notes
 
 
 

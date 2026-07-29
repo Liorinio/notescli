@@ -32,11 +32,16 @@ class NoteBase(BaseModel):
         }
 
     @classmethod
-    def deserialize(cls, data: NoteData) -> Self:
-        return cls(
+    def deserialize(cls, data: NoteData | unionOfData) -> "NoteBase":
+        note_type = data["note_type"]
+
+        if isinstance(note_type, str):
+            note_type = NoteType[note_type]
+
+        return NoteBase(
             note_id=data["note_id"],
             title=data["title"],
-            note_type=data["note_type"],
-            created_at=data["created_at"],
-            updated_at=data["updated_at"],
+            note_type=note_type,
+            created_at=datetime.fromisoformat(data["created_at"]),
+            updated_at=datetime.fromisoformat(data["updated_at"]),
         )
