@@ -3,9 +3,8 @@ import os
 from datetime import datetime
 from typing import Union, cast, Any
 from uuid import uuid4
-
 from app_types.NoteBase import NoteBase
-from app_types.NoteData import SimpleData, ListData, BookMarkData, unionOfData
+from app_types.NoteData import SimpleData, ListData, BookMarkData, unionOfData, NoteData
 from app_types.NoteType import NoteType, serializedDict
 from app_types.NoteTypes import NoteSimple, NoteList, NoteBookMark
 
@@ -57,24 +56,22 @@ def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
 
 
 def parse_note2(db_path: str) -> list[NoteBase]:
-    data: list[NoteBase] = []
-
-    note_classes = {
+    note_classes: dict[NoteType, type[NoteBase]] = {
         NoteType.SIMPLE: NoteSimple,
         NoteType.BOOKMARK: NoteBookMark,
         NoteType.LISTNOTE: NoteList,
     }
 
-    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
-        with open(db_path, "r") as file:
-            raw: list[serializedDict] = json.load(file)
+    if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
+        return []
 
-        for note in raw:
-            note_type = NoteType[note["note_type"]]
+    with open(db_path, "r") as file:
+        raw: list[NoteData] = json.load(file)
 
-            note_class = note_classes[note_type]
-
-            data.append(note_class.deserialize(note))
+    return [
+        note_classes[note["note_type"]].deserialize(note)
+        for note in raw
+    ]
 
 
 

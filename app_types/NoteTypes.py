@@ -17,7 +17,7 @@ class NoteSimple(NoteBase):
         return note_dict
 
     @classmethod
-    def deserialize(cls, data) -> NoteSimple:
+    def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if not isinstance(data["content"], str):
             raise TypeError("NotteSimple must contain a string content")
         return cls(**super().deserialize(data).model_dump(), content=data["content"])
