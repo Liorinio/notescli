@@ -68,10 +68,7 @@ def parse_note2(db_path: str) -> list[NoteBase]:
     with open(db_path, "r") as file:
         raw: list[NoteData] = json.load(file)
 
-    return [
-        note_classes[note["note_type"]].deserialize(note)
-        for note in raw
-    ]
+    return [note_classes[note["note_type"]].deserialize(note) for note in raw]
 
 
 
@@ -103,3 +100,8 @@ def print_all():
             print(NoteBookMark.deserialize(note_data).to_str()+"\n")
         else:
             print(NoteList.deserialize(note_data).to_str()+"\n")
+
+def print_all2():
+    data = parse_note2("db.json")
+    for note in data:
+        print(note.to_str())

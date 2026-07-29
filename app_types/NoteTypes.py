@@ -19,7 +19,7 @@ class NoteSimple(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if not isinstance(data["content"], str):
-            raise TypeError("NotteSimple must contain a string content")
+            raise TypeError("NoteSimple must contain a string content")
         return cls(**super().deserialize(data).model_dump(), content=data["content"])
 
 class NoteList(NoteBase):
@@ -36,7 +36,7 @@ class NoteList(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData):
         if not isinstance(data["content"], list):
-            raise TypeError("NotteSimple must contain a list of string as content")
+            raise TypeError("NoteList must contain a list of string as content")
         return cls(**super().deserialize(data).model_dump(), content=data["content"])
 
 class NoteBookMark(NoteBase):
@@ -53,12 +53,12 @@ class NoteBookMark(NoteBase):
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> Self:
         if not isinstance(data["content"], str):
-            raise TypeError("NotteSimple must contain a string content")
+            raise TypeError("NoteBookMark must contain a string content")
         return cls(**super().deserialize(data).model_dump(), content_site_url=data["content"])
 
     def open_url(self) -> tuple[int, Any] | None:
         url = self.content_site_url.split("://")
         if url[0] == "http" or url[0] == "https":
             response = requests.get(self.content_site_url)
-            return response.status_code, response.json
+            return response.status_code, response.json()
         return None
