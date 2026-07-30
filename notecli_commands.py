@@ -90,6 +90,14 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
         return NoteList(note_id=note_id, title=title, note_type=note_type, created_at=creation_date,
                         updated_at=creation_date, content=content)
 
+
+def __json_to_dict2__(db_path: str) -> list[NoteBase]:
+    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+        return []
+    db_data: list[NoteBase] = Db.load_from_json(db_path).get_db_data()
+    logger.info("The data was retrieved")
+    return db_data
+
 def __json_to_dict__(db_path: str) -> list[serializedDict]:
     if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
         return []
