@@ -121,6 +121,12 @@ def __add_to_db__(new_data:serializedDict, db_path: str) -> None:
     with open(db_path, "w") as file:
         json.dump(db_data, file, indent=4)
 
+
+def __add_to_db2__(new_data: NoteBase):
+    db: Db = Db.load_from_json("db.json")
+    db.add_note_to_db(new_data)
+    db.save_to_json("db.json")
+
 def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
     note: serializedDict = __create_note_by_type__(note_type, title, content).serialize()
     __add_to_db__(note, "db.json")
