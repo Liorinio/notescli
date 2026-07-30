@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "notecli"
 version = "0.1.0"
 dependencies = [
-    "typer"
+    "pydantic>=2.13.4",
+    "requests>=2.34.2",
+    "typer",
 ]
 
 [project.scripts]

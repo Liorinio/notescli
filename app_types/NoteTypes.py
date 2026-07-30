@@ -1,7 +1,7 @@
 from typing import Any, Self
 import requests
 from app_types.NoteBase import NoteBase
-from app_types.NoteType import serializedDict, SerializedNote, SerializedNoteSimple
+from app_types.NoteType import serializedDict
 from app_types.NoteData import NoteData, unionOfData
 
 
@@ -17,7 +17,7 @@ class NoteSimple(NoteBase):
         return note_dict
 
     @classmethod
-    def deserialize(cls, data: SerializedNote) -> NoteSimple:
+    def deserialize(cls, data) -> NoteSimple:
         if not isinstance(data["content"], str):
             raise TypeError("NotteSimple must contain a string content")
         return cls(**super().deserialize(data).model_dump(), content=data["content"])
@@ -34,20 +34,10 @@ class NoteList(NoteBase):
         return note_dict
 
     @classmethod
-    @classmethod
-    def deserialize(cls, data: SerializedNote) -> "NoteList":
-        if "content" not in data:
-            raise TypeError("Missing content")
-
-        content = data["content"]
-
-        if not isinstance(content, list):
-            raise TypeError("NoteList must contain a list of strings")
-
-        return cls(
-            **super().deserialize(data).model_dump(),
-            content=content
-        )
+    def deserialize(cls, data: NoteData | unionOfData):
+        if not isinstance(data["content"], list):
+            raise TypeError("NotteSimple must contain a list of string as content")
+        return cls(**super().deserialize(data).model_dump(), content=data["content"])
 
 class NoteBookMark(NoteBase):
     content_site_url: str
