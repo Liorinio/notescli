@@ -23,9 +23,11 @@ class Db(BaseModel):
     def set_db_data(self, data: list[NoteBase]) -> None:
         self.db_data = data
 
+    def add_note_to_db(self, note: NoteBase) -> None:
+        self.db_data.append(note)
+
     def save_to_json(self, file_path: str) -> None:
-        Path(file_path).write_text(self.model_dump_json(indent=4),
-            encoding="utf-8")
+        Path(file_path).write_text(self.model_dump_json(indent=4),encoding="utf-8")
 
     @classmethod
     def load_from_json(cls, file_path: str) -> "Db":

@@ -8,12 +8,61 @@ from app_types.NoteBase import NoteBase
 from app_types.NoteSchemas import unionOfData, NoteData
 from app_types.NoteType import NoteType, serializedDict
 from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
+from db_schema import Db
 
 
 logger = logging.getLogger(__name__)
 
+def __create_note_by_type2__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList| NoteBookMark:
+    db: Db = Db.load_from_json("db.json")
+    note_id = db.get_counter()
+    creation_date: datetime = datetime.now()
+
+    db.update_counter_by_one()
+    db.save_to_json("db.json")
+
+    NOTE_INFO = {
+        NoteType.SIMPLE: (NoteSimple, str, "Simple"),
+        NoteType.BOOKMARK: (NoteBookMark, str, "BookMark"),
+        NoteType.LISTNOTE: (NoteList, list, "List")
+    }
+
+    note_class, expected_type, note_class_name = NOTE_INFO[note_type]
+
+    if not isinstance(content, expected_type):
+        logger.error(f"Invalid type of content, required a {expected_type}")
+        raise TypeError(f"The content must be a {expected_type}")
+    logger.info(f"A {note_class_name} note was created")
+    return note_class(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,updated_at=creation_date, content=content)
+'''
+    if note_type == NoteType.SIMPLE:
+        if not isinstance(content, str):
+            logger.error("Invalid type of content, required a string")
+            raise TypeError("Content must be a string")
+
+        logger.info("A Simple note was created")
+        return NoteSimple(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,
+                          updated_at=creation_date, content=content)
+    elif note_type == NoteType.BOOKMARK:
+        if not isinstance(content, str):
+            logger.error("Invalid type of content, required a string")
+            raise TypeError("Content must be a string")
+
+        logger.info("A BookMark note was created")
+        return NoteSimple(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,
+                          updated_at=creation_date, content=content)
+    else:
+        if not isinstance(content, list):
+            logger.error("Invalid type of content, required a list")
+            raise TypeError("Content must be a list")
+
+        logger.info("A List note was created")
+        return NoteList(note_id=note_id, title=title, note_type=note_type, created_at=creation_date,
+                        updated_at=creation_date, content=content)
+'''
+
 def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList| NoteBookMark:
-    node_id: int = uuid4().int
+    note_id: int = uuid4().int
     creation_date: datetime = datetime.now()
 
     if note_type == NoteType.SIMPLE:
@@ -22,7 +71,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
             raise TypeError("Content must be a string")
 
         logger.info("A Simple note was created")
-        return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
+        return NoteSimple(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,
                           updated_at=creation_date, content=content)
     elif note_type == NoteType.BOOKMARK:
         if not isinstance(content, str):
@@ -30,7 +79,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
             raise TypeError("Content must be a string")
 
         logger.info("A BookMark note was created")
-        return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
+        return NoteSimple(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,
                           updated_at=creation_date, content=content)
     else:
         if not isinstance(content, list):
@@ -38,7 +87,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
             raise TypeError("Content must be a list")
 
         logger.info("A List note was created")
-        return NoteList(note_id=node_id, title=title, note_type=note_type, created_at=creation_date,
+        return NoteList(note_id=note_id, title=title, note_type=note_type, created_at=creation_date,
                         updated_at=creation_date, content=content)
 
 def __json_to_dict__(db_path: str) -> list[serializedDict]:
