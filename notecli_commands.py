@@ -13,13 +13,13 @@ from db_schema import Db
 
 logger = logging.getLogger(__name__)
 
-def __create_note_by_type2__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList| NoteBookMark:
-    db: Db = Db.load_from_json("db.json")
+def __create_note_by_type2__(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str) -> NoteSimple | NoteList| NoteBookMark:
+    db: Db = Db.load_from_json(db_path)
     note_id = db.get_counter()
     creation_date: datetime = datetime.now()
 
     db.update_counter_by_one()
-    db.save_to_json("db.json")
+    db.save_to_json(db_path)
 
     NOTE_INFO = {
         NoteType.SIMPLE: (NoteSimple, str, "Simple"),
@@ -122,18 +122,18 @@ def __add_to_db__(new_data:serializedDict, db_path: str) -> None:
         json.dump(db_data, file, indent=4)
 
 
-def __add_to_db2__(new_data: NoteSimple | NoteList| NoteBookMark) -> None:
-    db: Db = Db.load_from_json("db.json")
+def __add_to_db2__(new_data: NoteSimple | NoteList| NoteBookMark, db_path: str) -> None:
+    db: Db = Db.load_from_json(db_path)
     db.add_note_to_db(new_data)
-    db.save_to_json("db.json")
+    db.save_to_json(db_path)
 
 def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
     note: serializedDict = __create_note_by_type__(note_type, title, content).serialize()
     __add_to_db__(note, "db.json")
 
-def adder2(note_type: NoteType, title: str, content: Union[str, list[str]]):
-    note2 = __create_note_by_type2__(note_type, title, content)
-    __add_to_db2__(note2)
+def adder2(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
+    note2 = __create_note_by_type2__(note_type, title, content, db_path)
+    __add_to_db2__(note2, db_path)
 
 
 def parse_note(db_path: str) -> list[NoteBase]:

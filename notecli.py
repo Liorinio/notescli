@@ -1,7 +1,7 @@
 import logging
 import typer
 from app_types.NoteType import NoteType
-from notecli_commands import adder, print_all
+from notecli_commands import adder, print_all, adder2
 
 app = typer.Typer()
 note_app = typer.Typer()
@@ -12,7 +12,9 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 @note_app.command()
 def add(given_note_type: str,title: str,content: str):
     note_type: NoteType = NoteType[given_note_type]
-    adder(note_type,title,content)
+    #adder(note_type,title,content)
+    adder2(note_type,title,content, "db2.json")
+
 
 @note_app.command(name="list")
 def list_notes():

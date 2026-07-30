@@ -31,6 +31,11 @@ class Db(BaseModel):
 
     @classmethod
     def load_from_json(cls, file_path: str) -> "Db":
-        json_data = Path(file_path).read_text(encoding="utf-8")
+        path = Path(file_path)
+
+        if not path.exists() or path.stat().st_size == 0:
+            return cls(db_data=[], counter=0)
+
+        json_data = path.read_text(encoding="utf-8")
         return cls.model_validate_json(json_data)
 

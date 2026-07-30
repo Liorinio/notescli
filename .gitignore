@@ -40,3 +40,8 @@ Thumbs.db
 
 # Generated archives
 *.zip
+
+
+.json
+.lock
+.egg-info
