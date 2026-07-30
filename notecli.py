@@ -7,8 +7,6 @@ app = typer.Typer()
 note_app = typer.Typer()
 app.add_typer(note_app, name="note")
 
-
-
 logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 
 @note_app.command()
@@ -21,5 +19,5 @@ def list_notes():
     print_all()
 
 
-if __name__ == "__notecli__":
+if __name__ == "__main__":
     app()

@@ -8,14 +8,19 @@ version = "0.1.0"
 dependencies = [
     "pydantic>=2.13.4",
     "requests>=2.34.2",
-    "typer",
+    "typer>=0.16.0",
 ]
 
 [project.scripts]
 notecli = "notecli:app"
 
 [tool.setuptools]
-py-modules = ["notecli", "notecli_commands"]
+py-modules = [
+    "notecli",
+    "notecli_commands",
+    "db_schema",
+]
 
-[tool.setuptools.packages.find]
-where = ["."]
+packages = [
+    "app_types",
+]
