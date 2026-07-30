@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from app_types.NoteData import NoteData, unionOfData
-from app_types.NoteType import NoteType, serializedDict
+from app_types.NoteType import NoteType, serializedDict, SerializedNote
 
 
 class NoteBase(BaseModel):
@@ -30,7 +30,7 @@ class NoteBase(BaseModel):
         }
 
     @classmethod
-    def deserialize(cls, data: serializedDict) -> NoteBase:
+    def deserialize(cls, data: SerializedNote) -> "NoteBase":
         return NoteBase(
             note_id=data['note_id'],
             title=data['title'],
