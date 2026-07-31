@@ -5,7 +5,7 @@ from typing import Union
 from uuid import uuid4
 import logging
 from app_types.NoteBase import NoteBase
-from app_types.NoteSchemas import unionOfData, NoteData
+from app_types.NoteSchemas import unionOfData, NoteData, NOTE_INFO
 from app_types.NoteType import NoteType, serializedDict
 from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
 from db_schema import Db
@@ -20,12 +20,6 @@ def __create_note_by_type2__(note_type: NoteType, title: str, content: Union[str
 
     db.update_counter_by_one()
     db.save_to_json(db_path)
-
-    NOTE_INFO = {
-        NoteType.SIMPLE: (NoteSimple, str, "Simple"),
-        NoteType.BOOKMARK: (NoteBookMark, str, "BookMark"),
-        NoteType.LISTNOTE: (NoteList, list, "List")
-    }
 
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
@@ -97,7 +91,7 @@ def __json_to_dict2__(db_path: str) -> list[NoteBase]:
     db_data: list[NoteBase] = Db.load_from_json(db_path).get_db_data()
     logger.info("The data was retrieved")
     return db_data
-
+'''
 def __json_to_dict__(db_path: str) -> list[serializedDict]:
     if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
         return []
@@ -120,22 +114,23 @@ def __add_to_db__(new_data:serializedDict, db_path: str) -> None:
 
     with open(db_path, "w") as file:
         json.dump(db_data, file, indent=4)
-
+'''
 
 def __add_to_db2__(new_data: NoteSimple | NoteList| NoteBookMark, db_path: str) -> None:
     db: Db = Db.load_from_json(db_path)
     db.add_note_to_db(new_data)
     db.save_to_json(db_path)
-
+'''
 def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
     note: serializedDict = __create_note_by_type__(note_type, title, content).serialize()
     __add_to_db__(note, "db.json")
+'''
 
 def adder2(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
     note2 = __create_note_by_type2__(note_type, title, content, db_path)
     __add_to_db2__(note2, db_path)
 
-
+'''
 def parse_note(db_path: str) -> list[NoteBase]:
     note_classes: dict[NoteType, type[NoteBase]] = {
         NoteType.SIMPLE: NoteSimple,
@@ -158,14 +153,9 @@ def parse_note(db_path: str) -> list[NoteBase]:
         notes.append(note_class.deserialize(note))
 
     return notes
+'''
 
 def parse_notes2(db_path: str) -> list[NoteBase]:
-    note_classes: dict[NoteType, type[NoteBase]] = {
-        NoteType.SIMPLE: NoteSimple,
-        NoteType.BOOKMARK: NoteBookMark,
-        NoteType.LISTNOTE: NoteList,
-    }
-
     if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
         logger.error(f"there is no file at the path: ${db_path}")
         return []
@@ -177,8 +167,9 @@ def printall2():
     for note in data:
         print(note.to_str())
 
-
+'''
 def print_all():
     data = parse_note("db.json")
     for note in data:
         print(note.to_str())
+'''
