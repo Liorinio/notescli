@@ -42,6 +42,4 @@ Thumbs.db
 *.zip
 
 
-.json
 .lock
-.egg-info

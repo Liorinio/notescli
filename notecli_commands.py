@@ -159,6 +159,24 @@ def parse_note(db_path: str) -> list[NoteBase]:
 
     return notes
 
+def parse_notes2(db_path: str) -> list[NoteBase]:
+    note_classes: dict[NoteType, type[NoteBase]] = {
+        NoteType.SIMPLE: NoteSimple,
+        NoteType.BOOKMARK: NoteBookMark,
+        NoteType.LISTNOTE: NoteList,
+    }
+
+    if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
+        logger.error(f"there is no file at the path: ${db_path}")
+        return []
+    db: Db = Db.load_from_json(db_path)
+    return db.get_db_data()
+
+def printall2():
+    data = parse_notes2("db2.json")
+    for note in data:
+        print(note.to_str())
+
 
 def print_all():
     data = parse_note("db.json")

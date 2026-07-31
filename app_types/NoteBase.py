@@ -35,5 +35,5 @@ class NoteBase(BaseModel):
         if isinstance(note_type, str):
             note_type = NoteType[note_type]
 
-        return NoteBase(note_id=data["note_id"],title=data["title"],note_type=note_type,
+        return cls(note_id=data["note_id"],title=data["title"],note_type=note_type,
             created_at=datetime.fromisoformat(data["created_at"]),updated_at=datetime.fromisoformat(data["updated_at"]),)

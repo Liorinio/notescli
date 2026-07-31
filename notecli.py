@@ -1,7 +1,7 @@
 import logging
 import typer
 from app_types.NoteType import NoteType
-from notecli_commands import adder, print_all, adder2
+from notecli_commands import adder, print_all, adder2, printall2
 
 app = typer.Typer()
 note_app = typer.Typer()
@@ -18,7 +18,7 @@ def add(given_note_type: str,title: str,content: str):
 
 @note_app.command(name="list")
 def list_notes():
-    print_all()
+    printall2()
 
 
 if __name__ == "__main__":
