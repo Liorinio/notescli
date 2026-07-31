@@ -5,7 +5,8 @@ from typing import Union
 from uuid import uuid4
 import logging
 from app_types.NoteBase import NoteBase
-from app_types.NoteSchemas import unionOfData, NoteData, NOTE_INFO
+from app_types.NoteRegistery import NOTE_INFO
+from app_types.NoteSchemas import unionOfData, NoteData
 from app_types.NoteType import NoteType, serializedDict
 from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
 from db_schema import Db
