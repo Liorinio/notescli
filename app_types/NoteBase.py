@@ -1,8 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app_types.NoteData import NoteData, unionOfData
+from app_types.NoteSchemas import NoteData, unionOfData
 from app_types.NoteType import NoteType, serializedDict
-
 
 class NoteBase(BaseModel):
     note_id: int
@@ -13,11 +12,11 @@ class NoteBase(BaseModel):
 
     def to_str(self) -> str:
         return (
-            f'note_id: {self.note_id} '
-            f'title: {self.title} '
-            f'note_type: {self.note_type.name} '
-            f'created_at: {self.created_at} '
-            f'updated_at: {self.updated_at} '
+            f'note_id: {self.note_id}, '
+            f'title: {self.title}, '
+            f'note_type: {self.note_type.name}, '
+            f'created_at: {self.created_at}, '
+            f'updated_at: {self.updated_at}'
         )
 
     def serialize(self) -> serializedDict:
@@ -30,11 +29,11 @@ class NoteBase(BaseModel):
         }
 
     @classmethod
-    def deserialize(cls, data: serializedDict) -> NoteBase:
-        return NoteBase(
-            note_id=data['note_id'],
-            title=data['title'],
-            note_type=NoteType[data['note_type']],
-            created_at=datetime.fromisoformat(data['created_at']),
-            updated_at=datetime.fromisoformat(data['updated_at'])
-        )
+    def deserialize(cls, data: NoteData | unionOfData) -> "NoteBase":
+        note_type = data["note_type"]
+
+        if isinstance(note_type, str):
+            note_type = NoteType[note_type]
+
+        return cls(note_id=data["note_id"],title=data["title"],note_type=note_type,
+            created_at=datetime.fromisoformat(data["created_at"]),updated_at=datetime.fromisoformat(data["updated_at"]),)

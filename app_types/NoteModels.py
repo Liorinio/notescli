@@ -5,7 +5,6 @@ from app_types.NoteBase import NoteBase
 from app_types.NoteType import serializedDict
 from app_types.NoteSchemas import NoteData, unionOfData
 
-
 logger = logging.getLogger(__name__)
 
 class NoteSimple(NoteBase):

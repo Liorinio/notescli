@@ -1,99 +1,55 @@
-import json
 import os
 from datetime import datetime
 from typing import Union
-from uuid import uuid4
 import logging
 from app_types.NoteBase import NoteBase
-from app_types.NoteSchemas import unionOfData, NoteData
-from app_types.NoteType import NoteType, serializedDict
+from app_types.NoteRegistery import NOTE_INFO
+from app_types.NoteType import NoteType
 from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
-
+from db_schema import Db
 
 logger = logging.getLogger(__name__)
 
-def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList| NoteBookMark:
-    node_id: int = uuid4().int
+def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str) -> NoteSimple | NoteList | NoteBookMark:
+    db: Db = Db.load_from_json(db_path)
+    note_id = db.get_counter()
     creation_date: datetime = datetime.now()
 
-    if note_type == NoteType.SIMPLE:
-        if not isinstance(content, str):
-            logger.error("Invalid type of content, required a string")
-            raise TypeError("Content must be a string")
+    db.update_counter_by_one()
+    db.save_to_json(db_path)
 
-        logger.info("A Simple note was created")
-        return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
-                          updated_at=creation_date, content=content)
-    elif note_type == NoteType.BOOKMARK:
-        if not isinstance(content, str):
-            logger.error("Invalid type of content, required a string")
-            raise TypeError("Content must be a string")
+    note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
-        logger.info("A BookMark note was created")
-        return NoteSimple(note_id=node_id, title=title,note_type=note_type, created_at=creation_date,
-                          updated_at=creation_date, content=content)
-    else:
-        if not isinstance(content, list):
-            logger.error("Invalid type of content, required a list")
-            raise TypeError("Content must be a list")
+    if not isinstance(content, expected_type):
+        logger.error(f"Invalid type of content, required a {expected_type}")
+        raise TypeError(f"The content must be a {expected_type}")
+    logger.info(f"A {note_class_name} note was created")
+    return note_class(note_id=note_id, title=title,note_type=note_type, created_at=creation_date,updated_at=creation_date, content=content)
 
-        logger.info("A List note was created")
-        return NoteList(note_id=node_id, title=title, note_type=note_type, created_at=creation_date,
-                        updated_at=creation_date, content=content)
-
-def __json_to_dict__(db_path: str) -> list[serializedDict]:
+def __json_to_dict__(db_path: str) -> list[NoteBase]:
     if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
         return []
+    db_data: list[NoteBase] = Db.load_from_json(db_path).get_db_data()
+    logger.info("The data was retrieved")
+    return db_data
 
-    with open(db_path, "r") as file:
-        try:
-            return json.load(file)
-        except json.decoder.JSONDecodeError:
-            logger.error("the string does not conform to standard JSON format rules")
-            return []
+def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db_path: str) -> None:
+    db: Db = Db.load_from_json(db_path)
+    db.add_note_to_db(new_data)
+    db.save_to_json(db_path)
 
-def __add_to_db__(new_data:serializedDict, db_path: str) -> None:
-    try:
-        with open(db_path, "r") as file:
-            db_data: list[serializedDict] = json.load(file)
-    except(FileNotFoundError, json.decoder.JSONDecodeError):
-        db_data = []
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
+    note = __create_note_by_type__(note_type, title, content, db_path)
+    __add_to_db__(note, db_path)
 
-    db_data.append(new_data)
-
-    with open(db_path, "w") as file:
-        json.dump(db_data, file, indent=4)
-
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]]):
-    note: serializedDict = __create_note_by_type__(note_type, title, content).serialize()
-    __add_to_db__(note, "db.json")
-
-
-def parse_note(db_path: str) -> list[NoteBase]:
-    note_classes: dict[NoteType, type[NoteBase]] = {
-        NoteType.SIMPLE: NoteSimple,
-        NoteType.BOOKMARK: NoteBookMark,
-        NoteType.LISTNOTE: NoteList,
-    }
-
+def __parse_notes__(db_path: str) -> list[NoteBase]:
     if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
         logger.error(f"there is no file at the path: ${db_path}")
         return []
-
-    with open(db_path, "r") as file:
-        raw: list[NoteData | unionOfData] = json.load(file)
-
-    notes: list[NoteBase] = []
-
-    for note in raw:
-        note_type = NoteType[note["note_type"]]
-        note_class = note_classes[note_type]
-        notes.append(note_class.deserialize(note))
-
-    return notes
-
+    db: Db = Db.load_from_json(db_path)
+    return db.get_db_data()
 
 def print_all():
-    data = parse_note("db.json")
+    data = __parse_notes__("db2.json")
     for note in data:
         print(note.to_str())

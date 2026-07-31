@@ -19,3 +19,4 @@ class ListData(NoteData):
     content: list[str]
 
 type unionOfData = SimpleData| ListData | BookMarkData
+
