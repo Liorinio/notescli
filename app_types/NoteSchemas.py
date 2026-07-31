@@ -1,5 +1,4 @@
 from typing import TypedDict
-
 from app_types.NoteType import NoteType
 
 # schemas for de-serializing the notes from the db

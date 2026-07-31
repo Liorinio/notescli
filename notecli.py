@@ -14,11 +14,9 @@ def add(given_note_type: str,title: str,content: str):
     note_type: NoteType = NoteType[given_note_type]
     adder2(note_type,title,content, "db2.json")
 
-
 @note_app.command(name="list")
 def list_notes():
     printall2()
-
 
 if __name__ == "__main__":
     app()
