@@ -28,6 +28,9 @@ class NoteBase(BaseModel):
             'updated_at': self.updated_at.isoformat(),
         }
 
+    def set_id(self, given_note_id: int):
+        self.note_id = given_note_id
+
     @classmethod
     def deserialize(cls, data: NoteData | unionOfData) -> "NoteBase":
         note_type = data["note_type"]
