@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Self
-
 from pydantic import BaseModel
 from app_types.NoteSchemas import NoteData, unionOfData
 from app_types.NoteType import NoteType, serializedDict
