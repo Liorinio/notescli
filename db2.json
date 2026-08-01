@@ -7,7 +7,15 @@
             "created_at": "2026-08-01T17:24:30.689799",
             "updated_at": "2026-08-01T17:24:30.689799",
             "content": "hello"
+        },
+        {
+            "note_id": 1,
+            "title": "test",
+            "note_type": 1,
+            "created_at": "2026-08-01T17:43:50.437186",
+            "updated_at": "2026-08-01T17:43:50.437186",
+            "content": "hello"
         }
     ],
-    "counter": 1
+    "counter": 2
 }

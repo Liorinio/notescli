@@ -1,13 +1,15 @@
 import json
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app_types.NoteBase import NoteBase
 from app_types.NoteModels import NoteBookMark, NoteSimple, NoteList
 from app_types.NoteRegistery import NOTE_INFO
 from app_types.NoteType import NoteType
 
 class Db(BaseModel):
-    db_data: list[NoteBase | NoteSimple | NoteBookMark | NoteList]
+    model_config = ConfigDict(revalidate_instances="never")
+
+    db_data: list[NoteBase]
     counter: int
 
     def get_counter(self) -> int:
@@ -29,7 +31,7 @@ class Db(BaseModel):
         self.db_data.append(note)
 
     def save_to_json(self, file_path: str) -> None:
-        Path(file_path).write_text(self.model_dump_json(indent=4),encoding="utf-8")
+        Path(file_path).write_text(self.model_dump_json(indent=4,serialize_as_any=True),encoding="utf-8")
 
     @classmethod
     def load_from_json(cls, file_path: str) -> "Db":
@@ -38,13 +40,15 @@ class Db(BaseModel):
         if not path.exists() or path.stat().st_size == 0:
             return cls(db_data=[], counter=0)
 
-        json_data = path.read_text(encoding="utf-8")
+        data = json.loads(path.read_text(encoding="utf-8"))
 
-        data = json.loads(json_data)
+        notes: list[NoteBase] = []
 
-        data["db_data"] = [
-            NOTE_INFO[NoteType(note["note_type"])][0].model_validate(note)
-            for note in data["db_data"]
-        ]
+        for note_data in data["db_data"]:
+            note_type = NoteType(note_data["note_type"])
+            note_class = NOTE_INFO[note_type][0]
 
-        return cls.model_validate(data)
+            note = note_class.model_validate(note_data)
+            notes.append(note)
+
+        return cls(db_data=notes,counter=data["counter"])
