@@ -4,37 +4,10 @@
             "note_id": 0,
             "title": "test",
             "note_type": 1,
-            "created_at": "2026-07-30T21:29:54.909620",
-            "updated_at": "2026-07-30T21:29:54.909620"
-        },
-        {
-            "note_id": 1,
-            "title": "test",
-            "note_type": 1,
-            "created_at": "2026-07-30T21:30:00.956718",
-            "updated_at": "2026-07-30T21:30:00.956718"
-        },
-        {
-            "note_id": 2,
-            "title": "test",
-            "note_type": 1,
-            "created_at": "2026-07-31T19:14:38.923405",
-            "updated_at": "2026-07-31T19:14:38.923405"
-        },
-        {
-            "note_id": 3,
-            "title": "test",
-            "note_type": 1,
-            "created_at": "2026-07-31T19:20:00.566298",
-            "updated_at": "2026-07-31T19:20:00.566298"
-        },
-        {
-            "note_id": 4,
-            "title": "test",
-            "note_type": 1,
-            "created_at": "2026-08-01T14:56:27.730663",
-            "updated_at": "2026-08-01T14:56:27.730663"
+            "created_at": "2026-08-01T17:24:30.689799",
+            "updated_at": "2026-08-01T17:24:30.689799",
+            "content": "hello"
         }
     ],
-    "counter": 5
+    "counter": 1
 }

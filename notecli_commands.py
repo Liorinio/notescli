@@ -10,7 +10,7 @@ from db_schema import Db
 
 logger = logging.getLogger(__name__)
 
-def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str) -> NoteSimple | NoteList | NoteBookMark:
+def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
     creation_date: datetime = datetime.now()
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
@@ -36,16 +36,17 @@ def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db_path: str) 
     db.add_note_to_db(new_data)
     db.save_to_json(db_path)
 
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
-    note = __create_note_by_type__(note_type, title, content, db_path)
-    __add_to_db__(note, db_path)
-
 def __parse_notes__(db_path: str) -> list[NoteBase]:
     if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
         logger.error(f"there is no file at the path: ${db_path}")
         return []
     db: Db = Db.load_from_json(db_path)
     return db.get_db_data()
+
+
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
+    note = __create_note_by_type__(note_type, title, content)
+    __add_to_db__(note, db_path)
 
 def print_all():
     data = __parse_notes__("db2.json")

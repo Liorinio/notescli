@@ -2,7 +2,6 @@ from datetime import datetime
 from enum import Enum
 from typing import TypedDict
 
-
 class NoteType(Enum):
     SIMPLE = 1
     LISTNOTE = 2

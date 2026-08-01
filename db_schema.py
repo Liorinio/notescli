@@ -1,11 +1,13 @@
+import json
 from pathlib import Path
-
 from pydantic import BaseModel
 from app_types.NoteBase import NoteBase
-
+from app_types.NoteModels import NoteBookMark, NoteSimple, NoteList
+from app_types.NoteRegistery import NOTE_INFO
+from app_types.NoteType import NoteType
 
 class Db(BaseModel):
-    db_data: list[NoteBase]
+    db_data: list[NoteBase | NoteSimple | NoteBookMark | NoteList]
     counter: int
 
     def get_counter(self) -> int:
@@ -37,5 +39,12 @@ class Db(BaseModel):
             return cls(db_data=[], counter=0)
 
         json_data = path.read_text(encoding="utf-8")
-        return cls.model_validate_json(json_data)
 
+        data = json.loads(json_data)
+
+        data["db_data"] = [
+            NOTE_INFO[NoteType(note["note_type"])][0].model_validate(note)
+            for note in data["db_data"]
+        ]
+
+        return cls.model_validate(data)
