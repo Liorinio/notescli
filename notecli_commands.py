@@ -20,7 +20,6 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
     logger.info(f"A {note_class_name} note was created")
     return note_class(note_id= -1, title=title,note_type=note_type, created_at=creation_date,updated_at=creation_date, content=content)
 
-
 def __json_to_dict__(db_path: str) -> list[NoteBase]:
     if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
         return []
@@ -28,27 +27,26 @@ def __json_to_dict__(db_path: str) -> list[NoteBase]:
     logger.info("The data was retrieved")
     return db_data
 
-def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db_path: str) -> None:
-    db: Db = Db.load_from_json(db_path)
+def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
+    if db is None:
+        logger.error(f"The db doesn't exist")
+        raise BlockingIOError("None exist db")
     note_id = db.get_counter()
     db.update_counter_by_one()
     new_data.set_id(note_id)
     db.add_note_to_db(new_data)
-    db.save_to_json(db_path)
 
-def __parse_notes__(db_path: str) -> list[NoteBase]:
-    if not (os.path.exists(db_path) and os.path.getsize(db_path) > 0):
-        logger.error(f"there is no file at the path: ${db_path}")
+def __parse_notes__(db: Db | None)-> list[NoteBase]:
+    if db is None:
+        logger.error(f"The db doesn't exist")
         return []
-    db: Db = Db.load_from_json(db_path)
     return db.get_db_data()
 
-
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db_path: str):
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None):
     note = __create_note_by_type__(note_type, title, content)
-    __add_to_db__(note, db_path)
+    __add_to_db__(note, db)
 
-def print_all():
-    data = __parse_notes__("db2.json")
+def print_all(db: Db | None):
+    data = __parse_notes__(db)
     for note in data:
         print(note.to_str())
