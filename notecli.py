@@ -21,9 +21,11 @@ def list_notes():
     print_all(db)
 
 @note_app.command()
-def add2(given_note_type: str,title: str,content: str):
-    note_type: NoteType = NoteType[given_note_type]
-    adder(note_type, title, content, db)
+def add(given_note_type: str, title: str, content: str):
+    if db is not None:
+        note_type: NoteType = NoteType[given_note_type]
+        adder(note_type, title, content, db)
+        db.save_to_json("db2.json")
 
 
 if __name__ == "__main__":
