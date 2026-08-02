@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
+
+from NoteDict import NoteDict
 from app_types.NoteBase import NoteBase
 from app_types.NoteRegistery import NOTE_INFO
 from app_types.NoteType import NoteType
@@ -51,3 +53,23 @@ class Db(BaseModel):
             notes.append(note)
 
         return cls(db_data=notes,counter=data["counter"])
+
+    def parse_to_dict(self) -> NoteDict:
+        return {
+            "db_data": [
+                note.model_dump(serialize_as_any=True) for note in self.db_data
+            ], "counter": self.counter
+        }
+
+    @classmethod
+    def parse_from_dict(cls, data_dict: NoteDict):
+        notes: list[NoteBase] = []
+
+        for note_data in data_dict["db_data"]:
+            note_type = NoteType(note_data["note_type"])
+            note_class = NOTE_INFO[note_type][0]
+
+            note = note_class.model_validate(note_data)
+            notes.append(note)
+
+        return cls(db_data=notes,counter=data_dict["counter"])
