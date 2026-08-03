@@ -17,10 +17,10 @@ notecli = "notecli:app"
 [tool.setuptools]
 py-modules = [
     "notecli",
+    "notecli_commands",
     "db_schema",
-    "noteDict",
-    "noteDataDict",
-    "FileManager",
+    "NoteDict",
+    "FileManager"# <--- Add this line here
 ]
 
 packages = [
