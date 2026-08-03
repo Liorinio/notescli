@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
+import sys
+print(sys.path)
+
 from noteDict import NoteDict
 from app_types.NoteBase import NoteBase
 from app_types.NoteRegistery import NOTE_INFO

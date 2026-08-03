@@ -1,5 +1,5 @@
 from typing import TypedDict
-from app_types.NoteType import NoteType
+from notecli.app_types.NoteType import NoteType
 
 # schemas for de-serializing the notes from the db
 class NoteData(TypedDict):

@@ -19,10 +19,11 @@ py-modules = [
     "notecli",
     "notecli_commands",
     "db_schema",
-    "NoteDict",
-    "FileManager"
+    "noteDict",
+    "noteDataDict",
+    "FileManager",
 ]
 
-packages = [
-    "app_types",
-]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app_types*"]

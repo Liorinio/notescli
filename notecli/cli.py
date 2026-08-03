@@ -14,7 +14,7 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 @app.callback()
 def main():
     global db
-    db = Db.load_from_json("db2.json")
+    db = Db.load_from_json("../db2.json")
 
 @note_app.command(name="list")
 def list_notes():
@@ -25,7 +25,7 @@ def add(given_note_type: str, title: str, content: str):
     if db is not None:
         note_type: NoteType = NoteType[given_note_type]
         adder(note_type, title, content, db)
-        db.save_to_json("db2.json")
+        db.save_to_json("../db2.json")
 
 
 if __name__ == "__main__":
