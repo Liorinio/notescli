@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 import requests
-from app_types.NoteBase import NoteBase
+from src.app_types.NoteBase import NoteBase
 
 logger = logging.getLogger(__name__)
 
