@@ -10,13 +10,8 @@ from notecli.db_schema import Db
 
 class DbFileStorage:
     @staticmethod
-    def save_to_db(db: Db, file_path: str):
-        data: NoteDict  = {
-            "db_data": [note.model_dump(mode="json") for note in db.db_data],
-            "counter": db.counter
-        }
-
-        Path(file_path).write_text(json.dumps(data, indent=4))
+    def save_to_db(nt: NoteDict, file_path: str):
+        Path(file_path).write_text(json.dumps(nt, indent=4))
 
     @classmethod
     def load_from_json(cls, file_path: str) -> "NoteDict":

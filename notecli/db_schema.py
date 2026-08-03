@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
+from typing import Self
 from pydantic import BaseModel, ConfigDict
-
 from notecli.note_dict import NoteDict
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -56,13 +56,12 @@ class Db(BaseModel):
 
     def parse_to_dict(self) -> NoteDict:
         return {
-            "db_data": [
-                note.model_dump(serialize_as_any=True) for note in self.db_data
-            ], "counter": self.counter
+            "db_data": [note.model_dump(mode="json") for note in self.db_data],
+            "counter": self.counter
         }
 
     @classmethod
-    def parse_from_dict(cls, data_dict: NoteDict):
+    def parse_from_dict(cls, data_dict: NoteDict) -> Self:
         notes: list[NoteBase] = []
 
         for note_data in data_dict["db_data"]:

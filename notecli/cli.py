@@ -3,6 +3,7 @@ import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
 from notecli.notecli_commands import adder, print_all
+from notecli.FileManager import DbFileStorage
 
 app = typer.Typer()
 note_app = typer.Typer()
@@ -14,7 +15,7 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 @app.callback()
 def main():
     global db
-    db = Db.load_from_json("db2.json")
+    db = Db.parse_from_dict(DbFileStorage.load_from_json("db2.json"))
 
 @note_app.command(name="list")
 def list_notes():
@@ -25,7 +26,7 @@ def add(given_note_type: str, title: str, content: str):
     if db is not None:
         note_type: NoteType = NoteType[given_note_type]
         adder(note_type, title, content, db)
-        db.save_to_json("db2.json")
+        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 
 if __name__ == "__main__":
