@@ -1,11 +1,10 @@
 import json
 from pathlib import Path
-from typing import TypedDict, Any
-from note_dict import NoteDict
-from app_types.NoteBase import NoteBase
-from app_types.NoteRegistery import NOTE_INFO
-from app_types.NoteType import NoteType
-from db_schema import Db
+from notecli.note_dict import NoteDict
+from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.NoteRegistery import NOTE_INFO
+from notecli.app_types.NoteType import NoteType
+from notecli.db_schema import Db
 
 
 

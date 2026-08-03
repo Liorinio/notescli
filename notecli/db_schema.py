@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
-from note_dict import NoteDict
-from app_types.NoteBase import NoteBase
-from app_types.NoteRegistery import NOTE_INFO
-from app_types.NoteType import NoteType
+from notecli.note_dict import NoteDict
+from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.NoteRegistery import NOTE_INFO
+from notecli.app_types.NoteType import NoteType
 
 class Db(BaseModel):
     model_config = ConfigDict(revalidate_instances="never")

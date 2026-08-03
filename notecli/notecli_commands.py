@@ -2,11 +2,11 @@ import os
 from datetime import datetime
 from typing import Union
 import logging
-from app_types.NoteBase import NoteBase
-from app_types.NoteRegistery import NOTE_INFO
-from app_types.NoteType import NoteType
-from app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
-from db_schema import Db
+from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.NoteRegistery import NOTE_INFO
+from notecli.app_types.NoteType import NoteType
+from notecli.app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
+from notecli.db_schema import Db
 
 logger = logging.getLogger(__name__)
 

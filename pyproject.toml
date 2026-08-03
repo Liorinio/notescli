@@ -12,17 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-notecli = "notecli:app"
+notecli = "notecli.cli:app"
 
-[tool.setuptools]
-py-modules = [
-    "notecli",
-    "notecli_commands",
-    "db_schema",
-    "note_dict",
-    "FileManager"
-]
-
-packages = [
-    "app_types",
-]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["notecli*"]
