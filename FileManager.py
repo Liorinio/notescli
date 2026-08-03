@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
-from noteDataDict import NoteDataDict
-from src.app_types.NoteBase import NoteBase
-from src.app_types.NoteRegistery import NOTE_INFO
-from src.app_types.NoteType import NoteType
+from app_types.NoteBase import NoteBase
+from app_types.NoteRegistery import NOTE_INFO
+from app_types.NoteType import NoteType
 from db_schema import Db
+from noteDict import NoteDict
 
 
 class DbFileStorage2:
