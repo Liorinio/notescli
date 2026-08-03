@@ -20,7 +20,7 @@ py-modules = [
     "notecli_commands",
     "db_schema",
     "NoteDict",
-    "FileManager"# <--- Add this line here
+    "FileManager"
 ]
 
 packages = [
