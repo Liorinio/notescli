@@ -83,8 +83,7 @@ class NoteBookMark(NoteBase):
     # Checks if the content is actual url
     # If so, returns a pair of status code and response body of the response, else return none
     def open_url(self) -> tuple[int, Any] | None:
-        url = self.content_site_url.split("://")
-        if url[0] == "http" or url[0] == "https":
+        if self.content_site_url.startswith("http:") or self.content_site_url.startswith("https:")
             response = requests.get(self.content_site_url)
             return response.status_code, response.json()
         return None
