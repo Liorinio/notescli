@@ -1,5 +1,3 @@
-import os
-from datetime import datetime
 from typing import Union
 import logging
 from notecli.app_types.NoteBase import NoteBase
@@ -11,7 +9,6 @@ from notecli.db_schema import Db
 logger = logging.getLogger(__name__)
 
 def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
-    creation_date: datetime = datetime.now()
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if not isinstance(content, expected_type):
@@ -19,14 +16,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
         raise TypeError(f"The content must be a {expected_type}")
     logger.info(f"A {note_class_name} note was created")
     return note_class(title=title,note_type=note_type,content=content)
-'''
-def __json_to_dict__(db_path: str) -> list[NoteBase]:
-    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
-        return []
-    db_data: list[NoteBase] = Db.load_from_json(db_path).get_db_data()
-    logger.info("The data was retrieved")
-    return db_data
-'''
+
 def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
     if db is None:
         logger.error(f"The db doesn't exist")
