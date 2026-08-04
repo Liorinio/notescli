@@ -1,7 +1,8 @@
 import logging
-from typing import Any
+from typing import Any, Self
 import requests
 from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.NoteType import serializedDict, NoteType
 
 logger = logging.getLogger(__name__)
 
@@ -11,11 +12,41 @@ class NoteSimple(NoteBase):
     def to_str(self):
         return NoteBase.to_str(self) + f', content: {self.content}'
 
+    def serialize(self) -> serializedDict:
+        ser_dict = super().serialize()
+        ser_dict["content"] = self.content
+        return ser_dict
+
+    def deserialize(self, data: dict) -> Self:
+        super().deserialize(data)
+        raw_content = data.get("updated_at")
+        if isinstance(raw_content, str):
+            self.updated_at = raw_content
+
+        return self
+
 class NoteList(NoteBase):
     content: list[str]
 
+    def __init__(self, title: str, note_type: NoteType, content: list[str]):
+        super().__init__(title, note_type)
+        self.content = content
+
     def to_str(self):
         return NoteBase.to_str(self) + f', content: {self.content}'
+
+    def serialize(self) -> serializedDict:
+        ser_dict = super().serialize()
+        ser_dict["content"] = self.content
+        return ser_dict
+
+    def deserialize(self, data: dict) -> Self:
+        super().deserialize(data)
+        raw_content = data.get("updated_at")
+        if isinstance(raw_content, list):
+            self.updated_at = raw_content
+
+        return self
 
 
 class NoteBookMark(NoteBase):
@@ -23,6 +54,19 @@ class NoteBookMark(NoteBase):
 
     def to_str(self):
         return NoteBase.to_str(self) + f', content: {self.content_site_url}'
+
+    def serialize(self) -> serializedDict:
+        ser_dict = super().serialize()
+        ser_dict["content"] = self.content_site_url
+        return ser_dict
+
+    def deserialize(self, data: dict) -> Self:
+        super().deserialize(data)
+        raw_content_site_url = data.get("updated_at")
+        if isinstance(raw_content_site_url, str):
+            self.updated_at = raw_content_site_url
+
+        return self
 
     # Checks if the content is actual url
     # If so, returns a pair of status code and response body of the response, else return none

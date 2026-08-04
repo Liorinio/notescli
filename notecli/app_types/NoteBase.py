@@ -1,15 +1,21 @@
 from datetime import datetime
 from typing import Self
-from pydantic import BaseModel
-from notecli.app_types.NoteSchemas import NoteData, unionOfData
+#from pydantic import BaseModel
+#from notecli.app_types.NoteSchemas import NoteData, unionOfData
 from notecli.app_types.NoteType import NoteType, serializedDict
 
-class NoteBase(BaseModel):
+class NoteBase:
     note_id: int
     title: str
     note_type: NoteType
     created_at: datetime
     updated_at: datetime
+
+    def __init__(self, title: str, note_type: NoteType):
+        self.title = title
+        self.note_type = note_type
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
 
     def to_str(self) -> str:
         return (
@@ -21,11 +27,37 @@ class NoteBase(BaseModel):
         )
 
     def serialize(self) -> serializedDict:
-        return self.model_dump(mode="json")
+        #return self.model_dump(mode="json")
+        return {
+            "note_id": self.note_id,
+            "title": self.title,
+            "note_type": self.note_type,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
+        }
 
     def set_id(self, given_note_id: int):
         self.note_id = given_note_id
 
-    @classmethod
-    def deserialize(cls, data: NoteData | unionOfData) -> Self:
-        return cls.model_validate(data)
+    def deserialize(self, data: dict) -> Self:
+        raw_id = data.get("note_id")
+        if isinstance(raw_id, int):
+            self.note_id = raw_id
+
+        raw_title = data.get("title")
+        if isinstance(raw_title, str):
+            self.title = raw_title
+
+        raw_note_type = data.get("note_type")
+        if isinstance(raw_note_type, NoteType):
+            self.note_type = raw_note_type
+
+        raw_created_at = data.get("created_at")
+        if isinstance(raw_created_at, datetime):
+            self.created_at = raw_created_at
+
+        raw_updated_at = data.get("updated_at")
+        if isinstance(raw_updated_at, datetime):
+         self.updated_at = raw_updated_at
+
+        return self

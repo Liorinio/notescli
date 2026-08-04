@@ -7,9 +7,7 @@ from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
 
-class Db(BaseModel):
-    model_config = ConfigDict(revalidate_instances="never")
-
+class Db:
     db_data: list[NoteBase]
     counter: int
 
@@ -30,7 +28,7 @@ class Db(BaseModel):
 
     def add_note_to_db(self, note: NoteBase) -> None:
         self.db_data.append(note)
-
+    '''
     def save_to_json(self, file_path: str) -> None:
         Path(file_path).write_text(self.model_dump_json(indent=4,serialize_as_any=True),encoding="utf-8")
 
@@ -53,22 +51,28 @@ class Db(BaseModel):
             notes.append(note)
 
         return cls(db_data=notes,counter=data["counter"])
-
+    '''
     def parse_to_dict(self) -> NoteDict:
         return {
-            "db_data": [note.model_dump(mode="json") for note in self.db_data],
+            "db_data": [note.serialize() for note in self.db_data],
             "counter": self.counter
         }
 
-    @classmethod
-    def parse_from_dict(cls, data_dict: NoteDict) -> Self:
-        notes: list[NoteBase] = []
+    def parse_from_dict(self, data_dict: NoteDict) -> Self:
+        self.db_data = []
 
         for note_data in data_dict["db_data"]:
             note_type = NoteType(note_data["note_type"])
             note_class = NOTE_INFO[note_type][0]
 
-            note = note_class.model_validate(note_data)
-            notes.append(note)
+            note = note_class(
+                title="",
+                note_type=note_type,
+            )
+            note.deserialize(note_data)
 
-        return cls(db_data=notes,counter=data_dict["counter"])
+            self.db_data.append(note)
+
+        self.counter = data_dict["counter"]
+
+        return self
