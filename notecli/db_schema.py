@@ -35,9 +35,8 @@ class Db:
         logger.info("The note was inserted to the database")
 
     def parse_to_dict(self) -> NoteDict:
-        db_note_dict = NoteDict([note.serialize() for note in self.db_data], self.counter)
         logger.info("The database is ready to be saved")
-        return db_note_dict
+        return NoteDict([note.serialize() for note in self.db_data], self.counter)
 
     def parse_from_dict(self, data_dict: NoteDict) -> Self:
         self.db_data = []
@@ -52,3 +51,9 @@ class Db:
         self.counter = data_dict.counter
         logger.info("The database was parsed and it is in the memory")
         return self
+
+    def get_note_from_db(self, note_id: int):
+        return self.db_data[note_id]
+
+    def remove_note_from_db(self, note_id):
+        return self.db_data.pop(note_id)

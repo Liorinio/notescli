@@ -2,7 +2,7 @@ import logging
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
-from notecli.notecli_commands import adder, print_all
+from notecli.notecli_commands import adder, print_all, delete_note
 from notecli.FileManager import DbFileStorage
 
 app = typer.Typer()
@@ -27,6 +27,12 @@ def add(given_note_type: str, title: str, content: str):
     if db is not None:
         note_type: NoteType = NoteType[given_note_type]
         adder(note_type, title, content, db)
+        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+
+@note_app.command()
+def delete(note_id: int):
+    if db is not None:
+        delete_note(note_id, db)
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 
