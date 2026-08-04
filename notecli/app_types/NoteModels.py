@@ -23,9 +23,10 @@ class NoteSimple(NoteBase):
 
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
+
         raw_content = data.get("content")
         if isinstance(raw_content, str):
-            self.updated_at = raw_content
+            self.content = raw_content
 
         return self
 
@@ -46,9 +47,10 @@ class NoteList(NoteBase):
 
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
+
         raw_content = data.get("content")
         if isinstance(raw_content, list):
-            self.updated_at = raw_content
+            self.content = raw_content
 
         return self
 
@@ -70,11 +72,13 @@ class NoteBookMark(NoteBase):
 
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
-        raw_content_site_url = data.get("content")
-        if isinstance(raw_content_site_url, str):
-            self.updated_at = raw_content_site_url
+
+        raw_content = data.get("content")
+        if isinstance(raw_content, str):
+            self.content_site_url = raw_content
 
         return self
+
 
     # Checks if the content is actual url
     # If so, returns a pair of status code and response body of the response, else return none

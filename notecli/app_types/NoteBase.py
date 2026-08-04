@@ -58,14 +58,23 @@ class NoteBase:
 
         raw_note_type = data.get("note_type")
         if isinstance(raw_note_type, str):
-            self.note_type = NoteType[raw_note_type]
+            try:
+                self.note_type = NoteType(raw_note_type)
+            except ValueError:
+                pass
 
         raw_created_at = data.get("created_at")
         if isinstance(raw_created_at, str):
-            self.created_at = datetime.fromisoformat(raw_created_at)
+            try:
+                self.created_at = datetime.fromisoformat(raw_created_at)
+            except ValueError:
+                pass
 
         raw_updated_at = data.get("updated_at")
         if isinstance(raw_updated_at, str):
-         self.updated_at = datetime.fromisoformat(raw_updated_at)
+            try:
+                self.updated_at = datetime.fromisoformat(raw_updated_at)
+            except ValueError:
+                pass
 
         return self
