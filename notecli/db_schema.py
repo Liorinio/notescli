@@ -1,8 +1,11 @@
+import logging
 from typing import Self
 from notecli.note_dict import NoteDict
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
+
+logger = logging.getLogger(__name__)
 
 class Db:
     db_data: list[NoteBase]
@@ -29,9 +32,12 @@ class Db:
 
     def add_note_to_db(self, note: NoteBase) -> None:
         self.db_data.append(note)
+        logger.info("The note was inserted to the database")
 
     def parse_to_dict(self) -> NoteDict:
-        return NoteDict([note.serialize() for note in self.db_data], self.counter)
+        db_note_dict = NoteDict([note.serialize() for note in self.db_data], self.counter)
+        logger.info("The database is ready to be saved")
+        return db_note_dict
 
     def parse_from_dict(self, data_dict: NoteDict) -> Self:
         self.db_data = []
@@ -44,5 +50,5 @@ class Db:
             self.db_data.append(note)
 
         self.counter = data_dict.counter
-
+        logger.info("The database was parsed and it is in the memory")
         return self

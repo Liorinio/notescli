@@ -24,11 +24,12 @@ def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None)
     note_id = db.get_counter()
     db.update_counter_by_one()
     new_data.set_id(note_id)
+    logger.info(f"Note number {note_id} is ready to be inserted to the database")
     db.add_note_to_db(new_data)
 
-def __parse_notes__(db: Db | None)-> list[NoteBase]:
+def __parse_notes__(db: Db | None) -> list[NoteBase]:
     if db is None:
-        logger.error(f"The db doesn't exist")
+        logger.error("The db doesn't exist")
         return []
     return db.get_db_data()
 

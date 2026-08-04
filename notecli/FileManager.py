@@ -1,16 +1,17 @@
 import json
+import logging
 from pathlib import Path
 from notecli.note_dict import NoteDict
+
+logger = logging.getLogger(__name__)
 
 class DbFileStorage:
     @staticmethod
     def save_to_db(nt: NoteDict, file_path: str):
-        data = {
-            "db_data": nt.db_data,
-            "counter": nt.counter
-        }
+        data = {"db_data": nt.db_data,"counter": nt.counter}
 
         Path(file_path).write_text(json.dumps(data, indent=4, default=lambda obj : obj.name))
+        logger.info(f"The database was saved to a file in the following path: {file_path}")
 
     @staticmethod
     def load_from_json(file_path: str) -> NoteDict:
@@ -20,8 +21,5 @@ class DbFileStorage:
             return NoteDict(db_data=[], counter=0)
 
         data = json.loads(path.read_text(encoding="utf-8"))
-
-        return NoteDict(
-            db_data=data["db_data"],
-            counter=data["counter"]
-        )
+        logger.info(f"The database was read from the following path: {file_path}")
+        return NoteDict(db_data=data["db_data"],counter=data["counter"])

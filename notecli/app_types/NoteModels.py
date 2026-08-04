@@ -79,7 +79,6 @@ class NoteBookMark(NoteBase):
 
         return self
 
-
     # Checks if the content is actual url
     # If so, returns a pair of status code and response body of the response, else return none
     def open_url(self) -> tuple[int, Any] | None:
