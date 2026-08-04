@@ -1,7 +1,4 @@
-import json
-from pathlib import Path
 from typing import Self
-from pydantic import BaseModel, ConfigDict
 from notecli.note_dict import NoteDict
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -10,6 +7,10 @@ from notecli.app_types.NoteType import NoteType
 class Db:
     db_data: list[NoteBase]
     counter: int
+
+    def __init__(self):
+        self.db_data = []
+        self.counter = 0
 
     def get_counter(self) -> int:
         return self.counter
@@ -28,51 +29,20 @@ class Db:
 
     def add_note_to_db(self, note: NoteBase) -> None:
         self.db_data.append(note)
-    '''
-    def save_to_json(self, file_path: str) -> None:
-        Path(file_path).write_text(self.model_dump_json(indent=4,serialize_as_any=True),encoding="utf-8")
 
-    @classmethod
-    def load_from_json(cls, file_path: str) -> "Db":
-        path = Path(file_path)
-
-        if not path.exists() or path.stat().st_size == 0:
-            return cls(db_data=[], counter=0)
-
-        data = json.loads(path.read_text(encoding="utf-8"))
-
-        notes: list[NoteBase] = []
-
-        for note_data in data["db_data"]:
-            note_type = NoteType(note_data["note_type"])
-            note_class = NOTE_INFO[note_type][0]
-
-            note = note_class.model_validate(note_data)
-            notes.append(note)
-
-        return cls(db_data=notes,counter=data["counter"])
-    '''
     def parse_to_dict(self) -> NoteDict:
-        return {
-            "db_data": [note.serialize() for note in self.db_data],
-            "counter": self.counter
-        }
+        return NoteDict([note.serialize() for note in self.db_data], self.counter)
 
     def parse_from_dict(self, data_dict: NoteDict) -> Self:
         self.db_data = []
 
-        for note_data in data_dict["db_data"]:
-            note_type = NoteType(note_data["note_type"])
+        for note_data in data_dict.db_data:
+            note_type: NoteType = NoteType(note_data["note_type"])
             note_class = NOTE_INFO[note_type][0]
 
-            note = note_class(
-                title="",
-                note_type=note_type,
-            )
-            note.deserialize(note_data)
-
+            note = note_class(title="",note_type=note_type,content=note_data.get("content", "")).deserialize(note_data)
             self.db_data.append(note)
 
-        self.counter = data_dict["counter"]
+        self.counter = data_dict.counter
 
         return self

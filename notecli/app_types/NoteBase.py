@@ -16,6 +16,7 @@ class NoteBase:
         self.note_type = note_type
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
+        self.note_id = -1
 
     def to_str(self) -> str:
         return (
@@ -27,13 +28,20 @@ class NoteBase:
         )
 
     def serialize(self) -> serializedDict:
-        #return self.model_dump(mode="json")
         return {
             "note_id": self.note_id,
             "title": self.title,
-            "note_type": self.note_type,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "note_type": self.note_type.value,
+             "created_at": (
+            self.created_at.isoformat()
+            if hasattr(self.created_at, "isoformat")
+            else self.created_at
+        ),
+        "updated_at": (
+            self.updated_at.isoformat()
+            if hasattr(self.updated_at, "isoformat")
+            else self.updated_at
+        )
         }
 
     def set_id(self, given_note_id: int):
@@ -49,15 +57,15 @@ class NoteBase:
             self.title = raw_title
 
         raw_note_type = data.get("note_type")
-        if isinstance(raw_note_type, NoteType):
-            self.note_type = raw_note_type
+        if isinstance(raw_note_type, str):
+            self.note_type = NoteType[raw_note_type]
 
         raw_created_at = data.get("created_at")
-        if isinstance(raw_created_at, datetime):
-            self.created_at = raw_created_at
+        if isinstance(raw_created_at, str):
+            self.created_at = datetime.fromisoformat(raw_created_at)
 
         raw_updated_at = data.get("updated_at")
-        if isinstance(raw_updated_at, datetime):
-         self.updated_at = raw_updated_at
+        if isinstance(raw_updated_at, str):
+         self.updated_at = datetime.fromisoformat(raw_updated_at)
 
         return self

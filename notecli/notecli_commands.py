@@ -18,15 +18,15 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
         logger.error(f"Invalid type of content, required a {expected_type}")
         raise TypeError(f"The content must be a {expected_type}")
     logger.info(f"A {note_class_name} note was created")
-    return note_class(note_id= -1, title=title,note_type=note_type, created_at=creation_date,updated_at=creation_date, content=content)
-
+    return note_class(title=title,note_type=note_type, content=content)
+'''
 def __json_to_dict__(db_path: str) -> list[NoteBase]:
     if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
         return []
     db_data: list[NoteBase] = Db.load_from_json(db_path).get_db_data()
     logger.info("The data was retrieved")
     return db_data
-
+'''
 def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
     if db is None:
         logger.error(f"The db doesn't exist")
