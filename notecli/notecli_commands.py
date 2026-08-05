@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union, get_type_hints
 import logging
 from notecli.app_types.NoteBase import NoteBase
@@ -75,4 +76,21 @@ def show_note_structure():
     print("Field: content | Type: list[str]")
 
 
+def search_note_by_id(note_id: int, db: Db) -> str | None:
+    returned_note = db.get_note_from_db_by_id(note_id)
+    if returned_note is not None:
+        return returned_note.to_str()
+    else:
+        return None
 
+
+def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db):
+    return db.get_notes_by_date(early_creation_date, late_creation_date)
+
+
+def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int):
+    note = db.get_notes_by_date_and_id(early_creation_date, late_creation_date, note_id)
+    if note is not None:
+        return note.to_str()
+    else:
+        return None

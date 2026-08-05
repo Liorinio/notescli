@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from typing import Self
 from notecli.note_dict import NoteDict
 from notecli.app_types.NoteBase import NoteBase
@@ -52,8 +53,21 @@ class Db:
         logger.info("The database was parsed and it is in the memory")
         return self
 
-    def get_note_from_db(self, note_id: int):
-        return self.db_data[note_id]
+    def get_note_from_db_by_id(self, note_id: int) -> NoteBase | None:
+        for note in self.db_data:
+            if note.note_id == note_id:
+                return note
+
+        logger.warning("There is no such id in the database")
+        return None
 
     def remove_note_from_db(self, note_id):
         return self.db_data.pop(note_id)
+
+    def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime):
+        return [note for note in self.db_data if early_creation_date <= note.get_creation_date() <= late_creation_date]
+
+    def get_notes_by_date_and_id(self, early_creation_date: datetime, late_creation_date: datetime, note_id: int):
+        late_creation_date += timedelta(seconds=1)
+
+        return next((note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.note_id == note_id)),None)

@@ -1,8 +1,9 @@
 import logging
+from datetime import datetime
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
-from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure
+from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id
 from notecli.FileManager import DbFileStorage
 
 app = typer.Typer()
@@ -38,6 +39,26 @@ def delete(note_id: int):
 @note_app.command()
 def show_structure():
     show_note_structure()
+
+@note_app.command()
+def search(early_creation_date: datetime, late_creation_date: datetime,note_id: int):
+    if db is not None:
+        returned_note = search_note_by_date_and_id(early_creation_date,late_creation_date, db, note_id)
+        if returned_note is not None:
+            print(returned_note)
+        else:
+            print("None")
+
+
+@note_app.command(name="view")
+def view_note(note_id: int):
+    if db is not None:
+        returned_description = search_note_by_id(note_id, db)
+        if returned_description is not None:
+            print(returned_description)
+        else:
+            print("None")
+
 
 
 if __name__ == "__main__":

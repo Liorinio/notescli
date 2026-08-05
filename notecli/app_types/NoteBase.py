@@ -25,6 +25,9 @@ class NoteBase:
             f'updated_at: {self.updated_at}'
         )
 
+    def get_creation_date(self) -> datetime:
+        return self.created_at
+
     def serialize(self) -> serializedDict:
         return {
             "note_id": self.note_id,
