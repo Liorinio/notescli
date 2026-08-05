@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, get_type_hints
 import logging
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -57,3 +57,22 @@ def print_all(db: Db | None) -> None:
         data = __parse_notes__(db)
         for note in data:
             print(note.to_str())
+
+
+def show_note_structure():
+    hints = get_type_hints(NoteBase)
+    print("The common fields between all the notes:")
+    for field, field_type in hints.items():
+        print(f"Field: {field} | Type: {field_type.__name__}")
+
+    print("\nNoteSimple has the following field as well:")
+    print("Field: content | Type: str")
+
+    print("\nNoteBookMark has the following field as well:")
+    print("Field: content_site_url | Type: str")
+
+    print("\nNoteList has the following field as well:")
+    print("Field: content | Type: list[str]")
+
+
+
