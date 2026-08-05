@@ -94,3 +94,9 @@ def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date
         return note.to_str()
     else:
         return None
+
+def show_content_url(note_id: int, db: Db):
+    note = db.get_note_from_db_by_id(note_id)
+    if note is not None and isinstance(note, NoteBookMark):
+        return note.open_url()
+    return None

@@ -215,7 +215,15 @@
             "created_at": "2026-08-04T17:24:32.290735",
             "updated_at": "2026-08-04T17:24:32.290736",
             "content": "http://www.site.com"
+        },
+        {
+            "note_id": 27,
+            "title": "google",
+            "note_type": 3,
+            "created_at": "2026-08-05T13:52:23.868368",
+            "updated_at": "2026-08-05T13:52:23.868369",
+            "content": "https://www.google.com/"
         }
     ],
-    "counter": 27
+    "counter": 28
 }

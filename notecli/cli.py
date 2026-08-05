@@ -3,7 +3,7 @@ from datetime import datetime
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
-from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id
+from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url
 from notecli.FileManager import DbFileStorage
 
 app = typer.Typer()
@@ -59,6 +59,15 @@ def view_note(note_id: int):
         else:
             print("None")
 
+@note_app.command()
+def navigate(note_id: int):
+    if db is not None:
+        returned_output = show_content_url(note_id, db)
+        if returned_output is not None:
+            print(returned_output[0])
+            print(returned_output[1])
+        else:
+            print("None")
 
 
 if __name__ == "__main__":
