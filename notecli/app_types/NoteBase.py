@@ -28,6 +28,12 @@ class NoteBase:
     def get_creation_date(self) -> datetime:
         return self.created_at
 
+    def set_update_date(self):
+        self.updated_at = datetime.now()
+
+    def set_title(self, title: str):
+        self.title = title
+
     def serialize(self) -> serializedDict:
         return {
             "note_id": self.note_id,

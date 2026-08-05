@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, get_type_hints
+from typing import Union, get_type_hints, Any
 import logging
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -48,7 +48,7 @@ def delete_note(note_id: int, db: Db | None) -> NoteBase:
     raise BlockingIOError("None exist db")
 
 
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None):
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None) -> None:
     note = __create_note_by_type__(note_type, title, content)
     __add_to_db__(note, db)
 
@@ -60,7 +60,7 @@ def print_all(db: Db | None) -> None:
             print(note.to_str())
 
 
-def show_note_structure():
+def show_note_structure() -> None:
     hints = get_type_hints(NoteBase)
     print("The common fields between all the notes:")
     for field, field_type in hints.items():
@@ -84,18 +84,48 @@ def search_note_by_id(note_id: int, db: Db) -> str | None:
         return None
 
 
-def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db):
+def update_note_title(title: str, note_id: int, db: Db) -> None:
+    returned_note = db.get_note_from_db_by_id(note_id)
+    if returned_note is not None:
+        returned_note.set_title(title)
+        returned_note.set_update_date()
+
+
+def update_note_content(content: str | list[str], note_id: int, db: Db) -> None:
+    note = db.get_note_from_db_by_id(note_id)
+
+    if note is None:
+        logger.warning("Note with id %s not found", note_id)
+        return
+
+    if isinstance(content, str):
+        if isinstance(note, (NoteSimple, NoteBookMark)):
+            note.set_content(content)
+            note.set_update_date()
+            return
+
+    elif isinstance(content, list):
+        if isinstance(note, NoteList):
+            note.set_content(content)
+            note.set_update_date()
+            return
+
+    logger.warning("Invalid content type %s for note type %s", type(content).__name__, type(note).__name__)
+
+
+def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase]:
     return db.get_notes_by_date(early_creation_date, late_creation_date)
 
 
-def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int):
+def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int) -> str | None:
     note = db.get_notes_by_date_and_id(early_creation_date, late_creation_date, note_id)
     if note is not None:
         return note.to_str()
     else:
         return None
 
-def show_content_url(note_id: int, db: Db):
+
+def show_content_url(note_id: int, db: Db) ->tuple[int, Any] | None:
     note = db.get_note_from_db_by_id(note_id)
     if note is not None and isinstance(note, NoteBookMark):
         return note.open_url()

@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime
+from platform import node
+
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
-from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url
+from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url, update_note_title
 from notecli.FileManager import DbFileStorage
 
 app = typer.Typer()
@@ -68,6 +70,12 @@ def navigate(note_id: int):
             print(returned_output[1])
         else:
             print("None")
+
+@note_app.command()
+def update_title(title: str, note_id: int):
+    if db is not None:
+        update_note_title(title, note_id, db)
+        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 
 if __name__ == "__main__":

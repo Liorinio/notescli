@@ -30,6 +30,9 @@ class NoteSimple(NoteBase):
 
         return self
 
+    def set_content(self, content: str):
+        self.content = content
+
 class NoteList(NoteBase):
     content: list[str]
 
@@ -53,6 +56,9 @@ class NoteList(NoteBase):
             self.content = raw_content
 
         return self
+
+    def set_content(self, content: list[str]):
+        self.content = content
 
 
 class NoteBookMark(NoteBase):
@@ -78,6 +84,9 @@ class NoteBookMark(NoteBase):
             self.content_site_url = raw_content
 
         return self
+
+    def set_content(self, content: str):
+        self.content_site_url = content
 
     # Checks if the content is actual url
     # If so, returns a pair of status code and response body of the response, else return none
