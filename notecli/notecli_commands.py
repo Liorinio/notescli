@@ -79,6 +79,7 @@ def show_note_structure() -> None:
 def search_note_by_id(note_id: int, db: Db) -> str | None:
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is not None:
+        logger.info(f"Note number {note_id} was found")
         return returned_note.to_str()
     else:
         return None
@@ -89,6 +90,8 @@ def update_note_title(title: str, note_id: int, db: Db) -> None:
     if returned_note is not None:
         returned_note.set_title(title)
         returned_note.set_update_date()
+        logger.info(f"Note number {note_id} was updated")
+
 
 
 def update_note_content(content: str | list[str], note_id: int, db: Db) -> None:
@@ -102,12 +105,14 @@ def update_note_content(content: str | list[str], note_id: int, db: Db) -> None:
         if isinstance(note, (NoteSimple, NoteBookMark)):
             note.set_content(content)
             note.set_update_date()
+            logger.info(f"Note number {note_id} was updated")
             return
 
     elif isinstance(content, list):
         if isinstance(note, NoteList):
             note.set_content(content)
             note.set_update_date()
+            logger.info(f"Note number {note_id} was updated")
             return
 
     logger.warning("Invalid content type %s for note type %s", type(content).__name__, type(note).__name__)
@@ -120,6 +125,7 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
 def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int) -> str | None:
     note = db.get_notes_by_date_and_id(early_creation_date, late_creation_date, note_id)
     if note is not None:
+        logger.info(f"Note number {note_id} was found")
         return note.to_str()
     else:
         return None

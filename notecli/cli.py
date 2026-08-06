@@ -1,7 +1,5 @@
 import logging
 from datetime import datetime
-from platform import node
-
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
@@ -23,10 +21,19 @@ def main():
 
 @note_app.command(name="list")
 def list_notes():
+    '''
+    prints all the notes that are in the database
+    '''
     print_all(db)
 
 @note_app.command()
-def add(given_note_type: str, title: str, content: str):
+def add(given_note_type: str, title: str, content: list[str]):
+    '''
+    :param given_note_type: string
+    :param title: string
+    :param content: string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
+    adds a note to the database
+    '''
     if db is not None:
         note_type: NoteType = NoteType[given_note_type]
         adder(note_type, title, content, db)
@@ -34,12 +41,19 @@ def add(given_note_type: str, title: str, content: str):
 
 @note_app.command()
 def delete(note_id: int):
+    '''
+    :param note_id: integer
+    deletes a note from the database
+    '''
     if db is not None:
         delete_note(note_id, db)
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 @note_app.command()
 def show_structure():
+    '''
+    shows the structure of the notes that are available for usage in the system
+    '''
     show_note_structure()
 
 @note_app.command()
@@ -54,6 +68,10 @@ def search(early_creation_date: datetime, late_creation_date: datetime,note_id: 
 
 @note_app.command(name="view")
 def view_note(note_id: int):
+    '''
+    :param note_id: integer
+    shows a specific note
+    '''
     if db is not None:
         returned_description = search_note_by_id(note_id, db)
         if returned_description is not None:
@@ -63,6 +81,10 @@ def view_note(note_id: int):
 
 @note_app.command()
 def navigate(note_id: int):
+    '''
+    :param note_id: integer
+    shows the content of the url
+    '''
     if db is not None:
         returned_output = show_content_url(note_id, db)
         if returned_output is not None:
@@ -73,12 +95,22 @@ def navigate(note_id: int):
 
 @note_app.command()
 def update_title(title: str, note_id: int):
+    '''
+    :param title: string
+    :param note_id: integer
+    updates the title of a specific note
+    '''
     if db is not None:
         update_note_title(title, note_id, db)
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 @note_app.command()
 def update_content(title: str, note_id: int):
+    '''
+    :param title: string
+    :param note_id: integer
+    updates the content of a specific note
+    '''
     if db is not None:
         update_note_content(title, note_id, db)
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
