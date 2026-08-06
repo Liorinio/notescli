@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from typing import Optional
+
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
@@ -111,15 +113,38 @@ def update_title(title: str, note_id: int):
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
 
 @note_app.command()
-def update_content(title: str, note_id: int):
+def update_content(content: list[str], note_id: int):
     """
-    :param title: string
+    :param content: string
     :param note_id: integer
     updates the content of a specific note
     """
     if db is not None:
-        update_note_content(title, note_id, db)
+        update_note_content(content, note_id, db)
         DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+
+@note_app.command()
+def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Optional[str] = typer.Argument(None)):
+    """
+    :param note_id: integer
+    :param title: string (optional)
+    :param content: string (optional)
+    updates the content and/or the title of a specific note
+    """
+    if db is not None:
+        if content and not title:
+            update_note_content(content, note_id, db)
+            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        elif title and not content:
+            update_note_title(title, note_id, db)
+            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        elif title and content:
+            update_note_title(title, note_id, db)
+            update_note_content(content, note_id, db)
+            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        else:
+            print("None")
+
 
 
 if __name__ == "__main__":

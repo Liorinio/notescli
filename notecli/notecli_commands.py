@@ -94,7 +94,7 @@ def update_note_title(title: str, note_id: int, db: Db) -> None:
 
 
 
-def update_note_content(content: str | list[str], note_id: int, db: Db) -> None:
+def update_note_content(content: str | list[str] | None, note_id: int, db: Db) -> None:
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
