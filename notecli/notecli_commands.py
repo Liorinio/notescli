@@ -10,8 +10,7 @@ from notecli.db_schema import Db
 logger = logging.getLogger(__name__)
 
 
-def __create_note_by_type__(note_type: NoteType, title: str,
-                            content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
+def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if not isinstance(content, expected_type):

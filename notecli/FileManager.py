@@ -2,9 +2,10 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Optional
+from sqlalchemy import text, create_engine
+from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.note_dict import NoteDict
 import psycopg
-
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,6 @@ def table_creator(conn: Any):
          )
         """)
         conn.commit()
-
 
 class PostgresStorage:
     @staticmethod
@@ -114,3 +114,30 @@ class PostgresStorage:
 
             counter = 0 if row is None else row[0]
             return NoteDict(notes, counter)
+
+
+class PostgresDb:
+    @staticmethod
+    def load_from_db():
+        engine = create_engine('postgresql://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+        connection = engine.connect()
+        rows = connection.execute(text("SELECT * FROM notes")).mappings().all()
+
+        notes: list[dict[str, Any]] = []
+
+        for row in rows:
+            note_class, expected_type, note_class_name = NOTE_INFO[row["note_type"]]
+
+            if not isinstance(row["content"], expected_type):
+                logger.error(f"Invalid type of content, required a {expected_type}")
+                raise TypeError(f"The content must be a {expected_type}")
+            logger.info(f"A {note_class_name} note was created")
+            return note_class(title=row["title"], note_type=row["note_type"], content=row["content"])
+
+        with connection as conn:
+            query = text("SELECT your_int_column FROM your_table WHERE id = 1")
+            db_counter = conn.execute(query).scalar_one()
+        return NoteDict(db_data=notes, counter=db_counter)
+
+
+
