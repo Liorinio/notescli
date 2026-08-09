@@ -31,9 +31,9 @@ def list_notes():
 @note_app.command()
 def add(given_note_type: str, title: str, content: list[str]):
     """
-    :param given_note_type: string
-    :param title: string
-    :param content: string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
+    :param given_note_type: The type of the given note (simple/bookmark/list), needs to be a string
+    :param title: The title of the given note, needs to be a string
+    :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
     adds a note to the database
     """
     if db is not None:
@@ -44,7 +44,7 @@ def add(given_note_type: str, title: str, content: list[str]):
 @note_app.command()
 def delete(note_id: int):
     """
-    :param note_id: integer
+    :param note_id: The id of the note, needs to be an integer
     deletes a note from the database
     """
     if db is not None:
@@ -61,9 +61,9 @@ def show_structure():
 @note_app.command()
 def search(early_creation_date: datetime, late_creation_date: datetime,note_id: int):
     """
-    :param early_creation_date: datetime
-    :param late_creation_date: datetime
-    :param note_id: integer
+    :param early_creation_date: The date which the note was created. needs to be a datetime type
+    :param late_creation_date: The date which the note was updated. needs to be a datetime type
+    :param note_id: The id of the note, needs to be an integer
     searches and prints a specific note
     """
     if db is not None:
@@ -77,7 +77,7 @@ def search(early_creation_date: datetime, late_creation_date: datetime,note_id: 
 @note_app.command(name="view")
 def view_note(note_id: int):
     """
-    :param note_id: integer
+    :param note_id: The id of the note, needs to be an integer
     shows a specific note
     """
     if db is not None:
@@ -90,8 +90,8 @@ def view_note(note_id: int):
 @note_app.command()
 def navigate(note_id: int):
     """
-    :param note_id: integer
-    shows the content of the url
+    :param note_id: The id of the note, needs to be an integer
+    shows the content of the url, if the note is a BookMarkNote
     """
     if db is not None:
         returned_output = show_content_url(note_id, db)
@@ -104,8 +104,8 @@ def navigate(note_id: int):
 @note_app.command()
 def update_title(title: str, note_id: int):
     """
-    :param title: string
-    :param note_id: integer
+    :param title: The title of the given note, needs to be a string
+    :param note_id: The id of the note, needs to be an integer
     updates the title of a specific note
     """
     if db is not None:
@@ -115,8 +115,8 @@ def update_title(title: str, note_id: int):
 @note_app.command()
 def update_content(content: list[str], note_id: int):
     """
-    :param content: string
-    :param note_id: integer
+    :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
+    :param note_id: The id of the note, needs to be an integer
     updates the content of a specific note
     """
     if db is not None:
@@ -126,9 +126,9 @@ def update_content(content: list[str], note_id: int):
 @note_app.command()
 def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Optional[str] = typer.Argument(None)):
     """
-    :param note_id: integer
-    :param title: string (optional)
-    :param content: string (optional)
+    :param note_id: The id of the note, needs to be an integer
+    :param title: The title of the given note needs to be a string (an optional parameter)
+    :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content (an optional parameter)
     updates the content and/or the title of a specific note
     """
     if db is not None:
@@ -144,8 +144,6 @@ def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Opt
             DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
         else:
             print("None")
-
-
 
 if __name__ == "__main__":
     app()
