@@ -1,7 +1,13 @@
 import json
 import logging
 from pathlib import Path
+from typing import Any, Optional
+from sqlalchemy import text, create_engine
+from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.note_dict import NoteDict
+import psycopg
+from notecli.tables import Note, Counter
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -26,3 +32,43 @@ class DbFileStorage:
         data = json.loads(path.read_text(encoding="utf-8"))
         logger.info(f"The database was read from the following path: {DbFileStorage.file_path}")
         return NoteDict(db_data=data["db_data"],counter=data["counter"])
+
+class PostgresDb:
+    engine = create_engine('postgresql://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+    connection = engine.connect()
+
+    @staticmethod
+    def load_from_db():
+
+        rows = PostgresDb.connection.execute(text("SELECT * FROM notes")).mappings().all()
+
+        notes: list[dict[str, Any]] = []
+
+        for row in rows:
+            note_class, expected_type, note_class_name = NOTE_INFO[row["note_type"]]
+
+            if not isinstance(row["content"], expected_type):
+                logger.error(f"Invalid type of content, required a {expected_type}")
+                raise TypeError(f"The content must be a {expected_type}")
+            logger.info(f"A {note_class_name} note was created")
+            return note_class(title=row["title"], note_type=row["note_type"], content=row["content"])
+
+        with PostgresDb.connection as conn:
+            query = text("SELECT your_int_column FROM your_table WHERE id = 1")
+            db_counter = conn.execute(query).scalar_one()
+        return NoteDict(db_data=notes, counter=db_counter)
+
+    @staticmethod
+    def save_to_db(nt: NoteDict):
+        with Session(PostgresDb.engine) as session:
+            notes = nt.get_db_data()
+
+            for i in range(len(notes)):
+                note = notes[i]
+                new_note = Note(note_id=note["note_id"], title= note["title"], note_type= note["note_type"], created_at=note["created_at"], updated_at= note["updated_at"], content=note["content"])
+                session.add(new_note)
+
+            new_counter = Counter(id=1, counter=nt.get_counter())
+            session.add(new_counter)
+
+            session.commit()
