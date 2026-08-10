@@ -19,7 +19,7 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 def main():
     global db
     db = Db()
-    db = db.parse_from_dict(DbFileStorage.load_from_db("db2.json"))
+    db = db.parse_from_dict(DbFileStorage.load_from_json())
 
 @note_app.command(name="list")
 def list_notes():
@@ -39,7 +39,7 @@ def add(given_note_type: str, title: str, content: list[str]):
     if db is not None:
         note_type: NoteType = NoteType[given_note_type]
         adder(note_type, title, content, db)
-        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        DbFileStorage.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def delete(note_id: int):
@@ -49,7 +49,7 @@ def delete(note_id: int):
     """
     if db is not None:
         delete_note(note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        DbFileStorage.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def show_structure():

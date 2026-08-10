@@ -90,7 +90,8 @@ def update_note_title(title: str, note_id: int, db: Db) -> None:
         returned_note.set_title(title)
         returned_note.set_update_date()
         logger.info(f"Note number {note_id} was updated")
-
+    else:
+        logger.warning(f"Note number {note_id} wasn't updated")
 
 
 def update_note_content(content: str | list[str] | None, note_id: int, db: Db) -> None:
@@ -117,8 +118,14 @@ def update_note_content(content: str | list[str] | None, note_id: int, db: Db) -
     logger.warning("Invalid content type %s for note type %s", type(content).__name__, type(note).__name__)
 
 
-def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase]:
-    return db.get_notes_by_date(early_creation_date, late_creation_date)
+def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase] | None:
+    notes = db.get_notes_by_date(early_creation_date, late_creation_date)
+    if notes is not None:
+        logger.info(f"the notes were found")
+        return notes
+    else:
+        logger.warning(f"the notes were found")
+        return None
 
 
 def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int) -> str | None:
@@ -127,11 +134,19 @@ def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date
         logger.info(f"Note number {note_id} was found")
         return note.to_str()
     else:
+        logger.warning(f"Note number {note_id} wasn't found")
         return None
 
 
 def show_content_url(note_id: int, db: Db) ->tuple[int, Any] | None:
     note = db.get_note_from_db_by_id(note_id)
-    if note is not None and isinstance(note, NoteBookMark):
-        return note.open_url()
-    return None
+
+    if note is None:
+        logger.warning(f"Note number {note_id} wasn't found")
+        return None
+
+    if not isinstance(note, NoteBookMark):
+        logger.warning(f"Note number {note_id} is not in the right type")
+        return None
+
+    return note.open_url()

@@ -61,13 +61,13 @@ class Db:
         logger.warning("There is no such id in the database")
         return None
 
-    def remove_note_from_db(self, note_id):
+    def remove_note_from_db(self, note_id) -> NoteBase:
         return self.db_data.pop(note_id)
 
-    def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime):
+    def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime) -> list[NoteBase] | None:
         return [note for note in self.db_data if early_creation_date <= note.get_creation_date() <= late_creation_date]
 
-    def get_notes_by_date_and_id(self, early_creation_date: datetime, late_creation_date: datetime, note_id: int):
+    def get_notes_by_date_and_id(self, early_creation_date: datetime, late_creation_date: datetime, note_id: int) -> NoteBase | None:
         late_creation_date += timedelta(seconds=1)
 
         return next((note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.note_id == note_id)),None)
