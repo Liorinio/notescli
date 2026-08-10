@@ -5,7 +5,6 @@ from typing import Any
 from sqlalchemy import text, create_engine, TextClause
 from sqlalchemy.engine.row import RowMapping
 from sqlalchemy.sql.schema import Sequence
-
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.note_store import NoteStore
 from notecli.tables import Note, Counter
@@ -24,7 +23,7 @@ class DbFileStorage:
         logger.info(f"The database was saved to a file in the following path: {DbFileStorage.file_path}")
 
     @staticmethod
-    def load_from_json() -> NoteStore:
+    def load_from_db() -> NoteStore:
         path = Path(DbFileStorage.file_path)
 
         if not path.exists() or path.stat().st_size == 0:
@@ -44,23 +43,27 @@ class PostgresDb:
     @staticmethod
     def load_from_db():
         rows: Sequence[RowMapping] = PostgresDb.connection.execute(text("SELECT * FROM notes")).mappings().all()
-        logger.info("The data was retrieved from the database")
-        notes: list[dict[str, Any]] = []
 
-        for row in rows:
-            note_class, expected_type, note_class_name = NOTE_INFO[row["note_type"]]
+        if not rows:
+            return NoteStore(db_data=[], counter=0)
+        else:
+            logger.info("The data was retrieved from the database")
+            notes: list[dict[str, Any]] = []
 
-            if not isinstance(row["content"], expected_type):
-                logger.error(f"Invalid type of content, required a {expected_type}")
-                raise TypeError(f"The content must be a {expected_type}")
-            else:
-                logger.info(f"A {note_class_name} note was created")
-                notes.append(note_class(title=row["title"], note_type=row["note_type"], content=row["content"]))
+            for row in rows:
+                note_class, expected_type, note_class_name = NOTE_INFO[row["note_type"]]
 
-        with PostgresDb.connection as conn:
-            query: TextClause = text("SELECT your_int_column FROM your_table WHERE id = 1")
-            db_counter = conn.execute(query).scalar_one()
-        return NoteStore(db_data=notes, counter=db_counter)
+                if not isinstance(row["content"], expected_type):
+                    logger.error(f"Invalid type of content, required a {expected_type}")
+                    raise TypeError(f"The content must be a {expected_type}")
+                else:
+                    logger.info(f"A {note_class_name} note was created")
+                    notes.append(note_class(title=row["title"], note_type=row["note_type"], content=row["content"]))
+
+            with PostgresDb.connection as conn:
+                query: TextClause = text("SELECT your_int_column FROM your_table WHERE id = 1")
+                db_counter = conn.execute(query).scalar_one()
+            return NoteStore(db_data=notes, counter=db_counter)
 
     @staticmethod
     def save_to_db(note_store: NoteStore):

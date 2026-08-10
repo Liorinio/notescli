@@ -18,7 +18,7 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 def main():
     global db
     db = Db()
-    db = db.parse_from_dict(DbFileStorage.load_from_json())
+    db = db.parse_from_dict(DbFileStorage.load_from_db())
 
 @note_app.command(name="list")
 def list_notes():
