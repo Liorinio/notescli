@@ -131,15 +131,13 @@ def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Opt
     updates the content and/or the title of a specific note
     """
     if db is not None:
-        if content and not title:
-            update_note_content(content, note_id, db)
-            DbFileStorage.save_to_db(db.parse_to_dict())
-        elif title and not content:
+        if title:
             update_note_title(title, note_id, db)
-            DbFileStorage.save_to_db(db.parse_to_dict())
-        elif title and content:
-            update_note_title(title, note_id, db)
+
+        if content:
             update_note_content(content, note_id, db)
+
+        if title or content:
             DbFileStorage.save_to_db(db.parse_to_dict())
         else:
             print("None")
