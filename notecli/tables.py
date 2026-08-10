@@ -6,7 +6,7 @@ from sqlalchemy import String, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from notecli.app_types.NoteType import NoteType
 
-engine = create_engine('postgresql://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
 connection = engine.connect()
 
 print("connected successfully")
@@ -30,7 +30,7 @@ class Counter(Base):
     __tablename__ = "my_table"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     counter: Mapped[int] = mapped_column(Integer, nullable=False)
-    __table_args__ = (CheckConstraint("id = 1", name="single_row"))
+    __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
 
 Base.metadata.create_all(engine)
 print("Tables created successfully")

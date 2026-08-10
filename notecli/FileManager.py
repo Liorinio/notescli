@@ -33,7 +33,7 @@ class DbFileStorage:
         return NoteDict(db_data=data["db_data"],counter=data["counter"])
 
 class PostgresDb:
-    engine = create_engine('postgresql://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+    engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
     connection = engine.connect()
 
     @staticmethod

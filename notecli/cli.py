@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime
 from typing import Optional
-
 import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
@@ -110,7 +109,7 @@ def update_title(title: str, note_id: int):
     """
     if db is not None:
         update_note_title(title, note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        DbFileStorage.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def update_content(content: list[str], note_id: int):
@@ -121,7 +120,7 @@ def update_content(content: list[str], note_id: int):
     """
     if db is not None:
         update_note_content(content, note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+        DbFileStorage.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Optional[str] = typer.Argument(None)):
@@ -134,14 +133,14 @@ def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Opt
     if db is not None:
         if content and not title:
             update_note_content(content, note_id, db)
-            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+            DbFileStorage.save_to_db(db.parse_to_dict())
         elif title and not content:
             update_note_title(title, note_id, db)
-            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+            DbFileStorage.save_to_db(db.parse_to_dict())
         elif title and content:
             update_note_title(title, note_id, db)
             update_note_content(content, note_id, db)
-            DbFileStorage.save_to_db(db.parse_to_dict(), "db2.json")
+            DbFileStorage.save_to_db(db.parse_to_dict())
         else:
             print("None")
 
