@@ -1,6 +1,10 @@
+from typing import Union
+
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.sql.schema import MetaData, Table, Column, CheckConstraint
 from sqlalchemy import Integer, String, Enum, DateTime, create_engine
+from sqlalchemy import String, Integer
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
 from notecli.app_types.NoteType import NoteType
 
@@ -9,20 +13,26 @@ connection = engine.connect()
 
 print("connected successfully")
 
-metadata = MetaData()
 
-notes = Table("my_table", metadata,
-                 Column("id", Integer, primary_key=True),
-                       Column("title", String, nullable=False),
-                       Column("note_type", Enum(NoteType, nullable=False)),
-                       Column("created_at", DateTime, nullable=False),
-                       Column("created_at", DateTime, nullable=False),
-                       Column("content", JSONB, nullable=False))
+class Base(DeclarativeBase):
+    pass
 
-Counter = Table("my_table", metadata,
-                   Column("id", Integer, primary_key=True),
-                         Column("counter", Integer, nullable=False),
-                         CheckConstraint("id = 1", name="single_row"))
+class Note(Base):
+    __tablename__ = "notes"
 
-metadata.create_all(engine)
-print("tables created")
+    note_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    note_type: Mapped[NoteType] = mapped_column(Enum(NoteType), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    content: Mapped[Union[str, list[str]]] = mapped_column(JSONB)
+
+
+class Counter(Base):
+    __tablename__ = "my_table"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    counter: Mapped[int] = mapped_column(Integer, nullable=False)
+    __table_args__ = (CheckConstraint("id = 1", name="single_row"))
+
+Base.metadata.create_all(engine)
+print("Tables created successfully!")
