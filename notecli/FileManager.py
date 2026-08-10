@@ -1,11 +1,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from sqlalchemy import text, create_engine
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.note_dict import NoteDict
-import psycopg
 from notecli.tables import Note, Counter
 from sqlalchemy.orm import Session
 
@@ -39,9 +38,7 @@ class PostgresDb:
 
     @staticmethod
     def load_from_db():
-
         rows = PostgresDb.connection.execute(text("SELECT * FROM notes")).mappings().all()
-
         notes: list[dict[str, Any]] = []
 
         for row in rows:
