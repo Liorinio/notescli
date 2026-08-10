@@ -1,7 +1,7 @@
 from typing import Any
 
 
-class NoteDict:
+class NoteStore:
     db_data: list[dict[str, Any]]
     counter: int
 

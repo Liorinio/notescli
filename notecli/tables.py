@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.sql.schema import CheckConstraint
@@ -6,10 +7,13 @@ from sqlalchemy import String, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from notecli.app_types.NoteType import NoteType
 
+logger = logging.getLogger(__name__)
+
+
 engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
 connection = engine.connect()
 
-print("connected successfully")
+logger.info("connected successfully to the postgres db")
 
 
 class Base(DeclarativeBase):
@@ -27,10 +31,10 @@ class Note(Base):
 
 
 class Counter(Base):
-    __tablename__ = "my_table"
+    __tablename__ = "counter_table"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     counter: Mapped[int] = mapped_column(Integer, nullable=False)
     __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
 
 Base.metadata.create_all(engine)
-print("Tables created successfully")
+logger.info("Tables created successfully")

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from typing import Self
-from notecli.note_dict import NoteDict
+from notecli.note_store import NoteStore
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
@@ -35,11 +35,11 @@ class Db:
         self.db_data.append(note)
         logger.info("The note was inserted to the database")
 
-    def parse_to_dict(self) -> NoteDict:
+    def parse_to_dict(self) -> NoteStore:
         logger.info("The database is ready to be saved")
-        return NoteDict([note.serialize() for note in self.db_data], self.counter)
+        return NoteStore([note.serialize() for note in self.db_data], self.counter)
 
-    def parse_from_dict(self, data_dict: NoteDict) -> Self:
+    def parse_from_dict(self, data_dict: NoteStore) -> Self:
         self.db_data = []
 
         for note_data in data_dict.db_data:
