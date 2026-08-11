@@ -131,7 +131,7 @@ def update_content(content: list[str], note_id: int):
         PostgresDb.save_to_db(db.parse_to_dict())
 
 @note_app.command()
-def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Optional[str] = typer.Argument(None)):
+def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[str] = typer.Option(None, "--content", "-c")):
     """
     :param note_id: The id of the note, needs to be an integer
     :param title: The title of the given note needs to be a string (an optional parameter)

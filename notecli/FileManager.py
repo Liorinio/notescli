@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
-from sqlalchemy import text, create_engine
+from sqlalchemy import text, create_engine, select
 from sqlalchemy.engine.row import RowMapping
 from sqlalchemy.sql.schema import Sequence
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -43,9 +43,6 @@ class PostgresDb:
 
     @staticmethod
     def load_from_db():
-
-        note_number_dict = {1: NoteType.SIMPLE, 2: NoteType.LISTNOTE, 3: NoteType.BOOKMARK}
-
         rows: Sequence[RowMapping] = PostgresDb.connection.execute(text("SELECT * FROM notes")).mappings().all()
 
         if not rows:
@@ -71,22 +68,55 @@ class PostgresDb:
 
     @staticmethod
     def save_to_db(note_store: NoteStore):
-        print(note_store.get_db_data())
+        notes = note_store.get_db_data()
+
         with Session(PostgresDb.engine) as session:
-            notes = note_store.get_db_data()
+
+            memory_ids = {note["note_id"] for note in notes}
 
             for note in notes:
-                added_note = Note(title=note["title"], note_type=note["note_type"],created_at=note["created_at"], updated_at=note["updated_at"], content=note["content"])
-                session.add(added_note)
-                logger.info(f"Note number: {note["note_id"]} was added to the postgres db")
+                existing_note = session.get(Note, note["note_id"])
+
+                if existing_note is None:
+                    new_note = Note(
+                        note_id=note["note_id"],
+                        title=note["title"],
+                        note_type=note["note_type"],
+                        created_at=note["created_at"],
+                        updated_at=note["updated_at"],
+                        content=note["content"])
+
+                    session.add(new_note)
+
+                    logger.info(f"Note number: {note['note_id']} was added to the postgres db")
+
+                else:
+                    existing_note.title = note["title"]
+                    existing_note.note_type = note["note_type"]
+                    existing_note.created_at = note["created_at"]
+                    existing_note.updated_at = note["updated_at"]
+                    existing_note.content = note["content"]
+
+                    logger.info(f"Note number: {note['note_id']} was updated in the postgres db")
+
+            postgres_ids = session.scalars(select(Note.note_id)).all()
+
+            for note_id in postgres_ids:
+                if note_id not in memory_ids:
+                    deleted_note = session.get(Note, note_id)
+                    session.delete(deleted_note)
+                    logger.info(f"Note number: {note_id} was deleted from the postgres db")
 
             counter = session.get(Counter, 1)
 
             if counter is None:
-                counter = Counter(id=1, counter=note_store.get_counter())
+                counter = Counter(id=1,counter=note_store.get_counter())
                 session.add(counter)
+
+                logger.info("Counter was added to the postgres db")
             else:
                 counter.counter = note_store.get_counter()
 
-            logger.info(f"The counter was added to the postgres db")
+                logger.info("Counter was updated in the postgres db")
+
             session.commit()
