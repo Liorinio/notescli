@@ -24,7 +24,7 @@ class Note(Base):
 
     note_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
-    note_type: Mapped[NoteType] = mapped_column(Enum(NoteType), nullable=False)
+    note_type: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     content: Mapped[Union[str, list[str]]] = mapped_column(JSONB, nullable=False)

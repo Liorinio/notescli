@@ -41,8 +41,9 @@ def __parse_notes__(db: Db | None) -> list[NoteBase]:
 def delete_note(note_id: int, db: Db | None) -> NoteBase:
     if db is not None:
         removed_note = db.remove_note_from_db(note_id)
-        logger.info(f"Note number {note_id} was deleted from the database")
-        return removed_note
+        if removed_note:
+            logger.info(f"Note number {note_id} was deleted from the database")
+            return removed_note
     logger.error("The db doesn't exist")
     raise BlockingIOError("None exist db")
 

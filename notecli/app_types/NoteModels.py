@@ -24,7 +24,7 @@ class NoteSimple(NoteBase):
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
 
-        raw_content = data.get("content")
+        raw_content = data.content
         if isinstance(raw_content, str):
             self.content = raw_content
 
@@ -51,7 +51,7 @@ class NoteList(NoteBase):
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
 
-        raw_content = data.get("content")
+        raw_content = data.content
         if isinstance(raw_content, list):
             self.content = raw_content
 
@@ -79,7 +79,7 @@ class NoteBookMark(NoteBase):
     def deserialize(self, data: dict) -> Self:
         super().deserialize(data)
 
-        raw_content = data.get("content")
+        raw_content = data.content
         if isinstance(raw_content, str):
             self.content_site_url = raw_content
 

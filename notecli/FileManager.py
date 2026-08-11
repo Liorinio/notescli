@@ -2,10 +2,11 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
-from sqlalchemy import text, create_engine, TextClause
+from sqlalchemy import text, create_engine
 from sqlalchemy.engine.row import RowMapping
 from sqlalchemy.sql.schema import Sequence
 from notecli.app_types.NoteRegistery import NOTE_INFO
+from notecli.app_types.NoteType import NoteType
 from notecli.note_store import NoteStore
 from notecli.tables import Note, Counter
 from sqlalchemy.orm import Session
@@ -42,6 +43,9 @@ class PostgresDb:
 
     @staticmethod
     def load_from_db():
+
+        note_number_dict = {1: NoteType.SIMPLE, 2: NoteType.LISTNOTE, 3: NoteType.BOOKMARK}
+
         rows: Sequence[RowMapping] = PostgresDb.connection.execute(text("SELECT * FROM notes")).mappings().all()
 
         if not rows:
@@ -51,30 +55,38 @@ class PostgresDb:
             notes: list[dict[str, Any]] = []
 
             for row in rows:
-                note_class, expected_type, note_class_name = NOTE_INFO[row["note_type"]]
+                note_class, expected_type, note_class_name = NOTE_INFO[NoteType(row["note_type"])]
 
                 if not isinstance(row["content"], expected_type):
                     logger.error(f"Invalid type of content, required a {expected_type}")
                     raise TypeError(f"The content's type must be of a type: {expected_type}")
-                else:
-                    logger.info(f"A {note_class_name} note was created")
-                    notes.append(note_class(title=row["title"], note_type=row["note_type"], content=row["content"]))
+
+                logger.info(f"A {note_class_name} note was created")
+
+                notes.append(note_class(title=row["title"],note_type=NoteType(row["note_type"]),content=row["content"],))
 
             with PostgresDb.connection as conn:
-                db_counter = conn.execute(text("SELECT your_int_column FROM your_table WHERE id = 1")).scalar_one()
+                db_counter = conn.execute(text("SELECT counter FROM counter_table WHERE id = 1")).scalar_one()
             return NoteStore(db_data=notes, counter=db_counter)
 
     @staticmethod
     def save_to_db(note_store: NoteStore):
+        print(note_store.get_db_data())
         with Session(PostgresDb.engine) as session:
             notes = note_store.get_db_data()
 
             for note in notes:
-                added_note = Note(id=note["id"], title=note["title"], note_type=note["note_type"],created_at=note["created_at"], updated_at=note["updated_at"])
+                added_note = Note(title=note["title"], note_type=note["note_type"],created_at=note["created_at"], updated_at=note["updated_at"], content=note["content"])
                 session.add(added_note)
-                logger.info(f"Note number {note["note_id:"]} was added to the postgres db")
+                logger.info(f"Note number: {note["note_id"]} was added to the postgres db")
 
-            added_counter = Counter(id=1, counter=note_store.get_counter())
-            session.add(added_counter)
+            counter = session.get(Counter, 1)
+
+            if counter is None:
+                counter = Counter(id=1, counter=note_store.get_counter())
+                session.add(counter)
+            else:
+                counter.counter = note_store.get_counter()
+
             logger.info(f"The counter was added to the postgres db")
             session.commit()

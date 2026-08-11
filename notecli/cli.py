@@ -5,7 +5,7 @@ import typer
 from notecli.app_types.NoteType import NoteType
 from notecli.db_schema import Db
 from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url, update_note_title, update_note_content
-from notecli.FileManager import DbFileStorage
+from notecli.FileManager import DbFileStorage, PostgresDb
 
 app = typer.Typer()
 note_app = typer.Typer()
@@ -18,7 +18,7 @@ logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 def main():
     global db
     db = Db()
-    db = db.parse_from_dict(DbFileStorage.load_from_db())
+    db = db.parse_from_dict(PostgresDb.load_from_db())
 
 @note_app.command(name="list")
 def list_notes():
@@ -36,9 +36,17 @@ def add(given_note_type: str, title: str, content: list[str]):
     adds a note to the database
     """
     if db is not None:
-        note_type: NoteType = NoteType[given_note_type]
-        adder(note_type, title, content, db)
-        DbFileStorage.save_to_db(db.parse_to_dict())
+        note_type = NoteType[given_note_type]
+
+        if note_type in (NoteType.SIMPLE, NoteType.BOOKMARK):
+            if len(content) != 1:
+                raise ValueError(f"{note_type.name} notes require exactly one content value")
+            content_to_add: str | list[str] = content[0]
+        else:
+            content_to_add = content
+
+        adder(note_type, title, content_to_add, db)
+        PostgresDb.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def delete(note_id: int):
@@ -48,7 +56,7 @@ def delete(note_id: int):
     """
     if db is not None:
         delete_note(note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict())
+        PostgresDb.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def show_structure():
@@ -109,7 +117,7 @@ def update_title(title: str, note_id: int):
     """
     if db is not None:
         update_note_title(title, note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict())
+        PostgresDb.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def update_content(content: list[str], note_id: int):
@@ -120,7 +128,7 @@ def update_content(content: list[str], note_id: int):
     """
     if db is not None:
         update_note_content(content, note_id, db)
-        DbFileStorage.save_to_db(db.parse_to_dict())
+        PostgresDb.save_to_db(db.parse_to_dict())
 
 @note_app.command()
 def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Optional[str] = typer.Argument(None)):
@@ -138,7 +146,7 @@ def update(note_id: int,title: Optional[str] = typer.Argument(None),content: Opt
             update_note_content(content, note_id, db)
 
         if title or content:
-            DbFileStorage.save_to_db(db.parse_to_dict())
+            PostgresDb.save_to_db(db.parse_to_dict())
         else:
             print("None")
 

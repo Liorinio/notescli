@@ -8,6 +8,7 @@ from notecli.app_types.NoteType import NoteType
 
 logger = logging.getLogger(__name__)
 
+
 class Db:
     db_data: list[NoteBase]
     counter: int
@@ -41,16 +42,21 @@ class Db:
 
     def parse_from_dict(self, data_dict: NoteStore) -> Self:
         self.db_data = []
+        notes_counter = 0
 
         for note_data in data_dict.db_data:
-            note_type: NoteType = NoteType(note_data["note_type"])
-            note_class = NOTE_INFO[note_type][0]
+            note_data.set_id(notes_counter)
+            note = note_data
+            notes_counter += 1
 
-            note = note_class(title="",note_type=note_type,content=note_data.get("content", "")).deserialize(note_data)
+
+            note.deserialize(note_data)
             self.db_data.append(note)
 
         self.counter = data_dict.counter
+
         logger.info("The database was parsed and it is in the memory")
+
         return self
 
     def get_note_from_db_by_id(self, note_id: int) -> NoteBase | None:
@@ -76,7 +82,10 @@ class Db:
     def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime) -> list[NoteBase] | None:
         return [note for note in self.db_data if early_creation_date <= note.get_creation_date() <= late_creation_date]
 
-    def get_notes_by_date_and_id(self, early_creation_date: datetime, late_creation_date: datetime, note_id: int) -> NoteBase | None:
+    def get_notes_by_date_and_id(self, early_creation_date: datetime, late_creation_date: datetime,
+                                 note_id: int) -> NoteBase | None:
         late_creation_date += timedelta(seconds=1)
 
-        return next((note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.note_id == note_id)),None)
+        return next((note for note in self.db_data if (
+                early_creation_date <= note.get_creation_date() < late_creation_date and note.note_id == note_id)),
+                    None)
