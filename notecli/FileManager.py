@@ -71,7 +71,6 @@ class PostgresDb:
         notes = note_store.get_db_data()
 
         with Session(PostgresDb.engine) as session:
-
             memory_ids = {note["note_id"] for note in notes}
 
             for note in notes:
