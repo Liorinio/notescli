@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 from typing import Self
 from notecli.note_store import NoteStore
 from notecli.app_types.NoteBase import NoteBase
+from notecli.tables import Counter
 
 logger = logging.getLogger(__name__)
 
 
 class Db:
     db_data: list[NoteBase]
-    counter: int
+
 
     def __init__(self):
         self.db_data = []
@@ -36,7 +37,7 @@ class Db:
 
     def parse_to_dict(self) -> NoteStore:
         logger.info("The database is ready to be saved")
-        return NoteStore([note for note in self.db_data], self.counter)
+        return NoteStore([note for note in self.db_data], Counter(id=1, counter=self.counter))
 
     def parse_from_dict(self, data_dict: NoteStore) -> Self:
         self.db_data = []
@@ -47,7 +48,7 @@ class Db:
             self.db_data.append(note)
             notes_counter += 1
 
-        self.counter = data_dict.counter
+        self.counter = data_dict.counter.counter
 
         logger.info("The database was parsed and it is in the memory")
 
