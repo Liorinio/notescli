@@ -9,10 +9,10 @@ class NoteBase:
     created_at: datetime
     updated_at: datetime
 
-    def __init__(self, title: str, note_type: NoteType):
+    def __init__(self, title: str, note_type: NoteType, creation_time: datetime):
         self.title = title
         self.note_type = note_type
-        self.created_at = datetime.now()
+        self.created_at = creation_time
         self.updated_at = datetime.now()
         self.note_id = -1
 

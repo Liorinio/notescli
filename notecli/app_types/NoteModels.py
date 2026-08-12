@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from typing import Any, Self
 import requests
@@ -9,8 +10,8 @@ logger = logging.getLogger(__name__)
 class NoteSimple(NoteBase):
     content: str
 
-    def __init__(self, title: str, note_type: NoteType, content: str):
-        super().__init__(title, note_type)
+    def __init__(self, title: str, note_type: NoteType, content: str, creation_time: datetime):
+        super().__init__(title, note_type, creation_time)
         self.content = content
 
     def to_str(self):

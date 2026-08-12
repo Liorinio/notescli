@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from typing import Self
 from notecli.note_store import NoteStore
 from notecli.app_types.NoteBase import NoteBase
-from notecli.app_types.NoteRegistery import NOTE_INFO
-from notecli.app_types.NoteType import NoteType
 
 logger = logging.getLogger(__name__)
 

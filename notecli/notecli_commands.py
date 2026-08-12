@@ -17,7 +17,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
         logger.error(f"Invalid type of content, required a {expected_type}")
         raise TypeError(f"The content must be a {expected_type}")
     logger.info(f"A {note_class_name} note was created")
-    return note_class(title=title, note_type=note_type, content=content)
+    return note_class(title=title, note_type=note_type, content=content, creation_time=datetime.now())
 
 
 def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:

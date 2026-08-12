@@ -60,7 +60,7 @@ class PostgresDb:
 
                 logger.info(f"A {note_class_name} note was created")
 
-                notes.append(note_class(title=row["title"],note_type=NoteType(row["note_type"]),content=row["content"],))
+                notes.append(note_class(title=row["title"],note_type=NoteType(row["note_type"]),content=row["content"],creation_time=row["created_at"]))
 
             with PostgresDb.connection as conn:
                 db_counter = conn.execute(text("SELECT counter FROM counter_table WHERE id = 1")).scalar_one()
