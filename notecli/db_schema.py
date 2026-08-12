@@ -36,20 +36,16 @@ class Db:
 
     def parse_to_dict(self) -> NoteStore:
         logger.info("The database is ready to be saved")
-        return NoteStore([note.serialize() for note in self.db_data], self.counter)
+        return NoteStore([note for note in self.db_data], self.counter)
 
     def parse_from_dict(self, data_dict: NoteStore) -> Self:
         self.db_data = []
         notes_counter = 0
 
-        for note_data in data_dict.db_data:
-            note_data.set_id(notes_counter)
-            note = note_data
-            notes_counter += 1
-
-
-            note.deserialize(note_data)
+        for note in data_dict.db_data:
+            note.set_id(notes_counter)
             self.db_data.append(note)
+            notes_counter += 1
 
         self.counter = data_dict.counter
 

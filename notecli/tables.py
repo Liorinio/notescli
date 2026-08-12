@@ -1,11 +1,11 @@
 import logging
+from datetime import datetime
 from typing import Union
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.sql.schema import CheckConstraint
-from sqlalchemy import Enum, DateTime, create_engine
+from sqlalchemy import DateTime, create_engine
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from notecli.app_types.NoteType import NoteType
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +25,8 @@ class Note(Base):
     note_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     note_type: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     content: Mapped[Union[str, list[str]]] = mapped_column(JSONB, nullable=False)
 
 

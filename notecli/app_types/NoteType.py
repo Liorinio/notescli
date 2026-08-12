@@ -23,6 +23,8 @@ class SerializedNoteSimple(SerializedNote):
 class SerializedNoteBookMark(SerializedNote):
     content: str
 
-class SerializedNoteDetailed(SerializedNote):
+class SerializedNoteList(SerializedNote):
     tags: list[str]
+
+type union_of_serialized_notes = SerializedNoteSimple | SerializedNoteBookMark | SerializedNoteList
 

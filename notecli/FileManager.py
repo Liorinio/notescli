@@ -1,7 +1,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any
 from sqlalchemy import text, create_engine, select
 from sqlalchemy.engine.row import RowMapping
 from sqlalchemy.sql.schema import Sequence
@@ -10,6 +9,7 @@ from notecli.app_types.NoteType import NoteType
 from notecli.note_store import NoteStore
 from notecli.tables import Note, Counter
 from sqlalchemy.orm import Session
+from notecli.app_types.NoteBase import NoteBase
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class PostgresDb:
             return NoteStore(db_data=[], counter=0)
         else:
             logger.info("The data was retrieved from the database")
-            notes: list[dict[str, Any]] = []
+            notes: list[NoteBase] = []
 
             for row in rows:
                 note_class, expected_type, note_class_name = NOTE_INFO[NoteType(row["note_type"])]
@@ -68,35 +68,35 @@ class PostgresDb:
 
     @staticmethod
     def save_to_db(note_store: NoteStore):
-        notes = note_store.get_db_data()
+        notes: list[NoteBase] = note_store.get_db_data()
 
         with Session(PostgresDb.engine) as session:
-            memory_ids = {note["note_id"] for note in notes}
+            memory_ids = {note.note_id for note in notes}
 
             for note in notes:
-                existing_note = session.get(Note, note["note_id"])
+                existing_note = session.get(Note, note.note_id)
 
                 if existing_note is None:
                     new_note = Note(
-                        note_id=note["note_id"],
-                        title=note["title"],
-                        note_type=note["note_type"],
-                        created_at=note["created_at"],
-                        updated_at=note["updated_at"],
-                        content=note["content"])
+                        note_id=note.note_id,
+                        title=note.title,
+                        note_type=note.note_type.value,
+                        created_at=note.created_at,
+                        updated_at=note.updated_at,
+                        content=getattr(note, "content"))
 
                     session.add(new_note)
 
-                    logger.info(f"Note number: {note['note_id']} was added to the postgres db")
+                    logger.info(f"Note number: {note.note_id} was added to the postgres db")
 
                 else:
-                    existing_note.title = note["title"]
-                    existing_note.note_type = note["note_type"]
-                    existing_note.created_at = note["created_at"]
-                    existing_note.updated_at = note["updated_at"]
-                    existing_note.content = note["content"]
+                    existing_note.title = note.title
+                    existing_note.note_type = note.note_type.value
+                    existing_note.created_at = note.created_at
+                    existing_note.updated_at = note.updated_at
+                    existing_note.content =getattr(note, "content")
 
-                    logger.info(f"Note number: {note['note_id']} was updated in the postgres db")
+                    logger.info(f"Note number: {note.note_id} was updated in the postgres db")
 
             postgres_ids = session.scalars(select(Note.note_id)).all()
 

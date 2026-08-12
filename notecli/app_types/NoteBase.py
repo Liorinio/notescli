@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Self
-from notecli.app_types.NoteType import NoteType, serializedDict
+from notecli.app_types.NoteType import NoteType, serializedDict, union_of_serialized_notes
+
 
 class NoteBase:
     note_id: int
@@ -54,30 +55,30 @@ class NoteBase:
     def set_id(self, given_note_id: int):
         self.note_id = given_note_id
 
-    def deserialize(self, data: dict) -> Self:
-        raw_id = data.note_id
+    def deserialize(self, data: union_of_serialized_notes) -> Self:
+        raw_id = data["note_id"]
         if isinstance(raw_id, int):
             self.note_id = raw_id
 
-        raw_title = data.title
+        raw_title = data["title"]
         if isinstance(raw_title, str):
             self.title = raw_title
 
-        raw_note_type = data.note_type
+        raw_note_type = data["note_type"]
         if isinstance(raw_note_type, str):
             try:
                 self.note_type = NoteType(raw_note_type)
             except ValueError:
                 pass
 
-        raw_created_at = data.created_at
+        raw_created_at = data["created_at"]
         if isinstance(raw_created_at, str):
             try:
                 self.created_at = datetime.fromisoformat(raw_created_at)
             except ValueError:
                 pass
 
-        raw_updated_at = data.updated_at
+        raw_updated_at = data["updated_at"]
         if isinstance(raw_updated_at, str):
             try:
                 self.updated_at = datetime.fromisoformat(raw_updated_at)
