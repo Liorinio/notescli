@@ -61,8 +61,8 @@ class PostgresDb:
                 logger.info(f"A {note_class_name} note was created")
                 notes.append(note_class(title=row["title"],note_type=NoteType(row["note_type"]),content=row["content"],creation_time=row["created_at"]))
 
-            with PostgresDb.connection as conn:
-                db_counter = conn.execute(text("SELECT counter FROM counter_table WHERE id = 1")).scalar_one()
+            db_counter = PostgresDb.connection.execute(text("SELECT counter FROM counter_table WHERE id = 1")).scalar_one()
+            PostgresDb.connection.close()
             return NoteStore(db_data=notes, counter=db_counter)
 
     @staticmethod
@@ -76,10 +76,9 @@ class PostgresDb:
                 existing_note = session.get(Note, note.note_id)
 
                 if existing_note is None:
-                    new_note = Note(note_id=note.note_id,title=note.title,note_type=note.note_type.value,created_at=note.created_at,updated_at=note.updated_at,content=getattr(note, "content"))
+                    new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value, created_at=note.created_at, updated_at=note.updated_at, content=getattr(note, "content"))
 
                     session.add(new_note)
-
                     logger.info(f"Note number: {note.note_id} was added to the postgres db")
 
                 else:
@@ -109,3 +108,4 @@ class PostgresDb:
                 logger.info("Counter was updated in the postgres db")
 
             session.commit()
+            session.close()
