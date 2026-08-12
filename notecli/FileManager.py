@@ -4,7 +4,6 @@ from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.schema import Sequence
-
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
 from notecli.note_store import NoteStore
@@ -30,7 +29,7 @@ class DbFileStorage:
 
         if not path.exists() or path.stat().st_size == 0:
             logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created")
-            return NoteStore(db_data=[], counter=0)
+            return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
 
         data = json.loads(path.read_text(encoding="utf-8"))
         logger.info(f"The database was read from the following path: {DbFileStorage.file_path}")
@@ -51,7 +50,7 @@ class PostgresDb:
                 db_counter = session.execute(select(Counter)).scalar_one()
 
             if not rows:
-                return NoteStore(db_data=[], counter=0)
+                return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
             else:
                 logger.info("The data was retrieved from the database")
                 notes: list[NoteBase] = []
