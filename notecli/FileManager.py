@@ -59,7 +59,6 @@ class PostgresDb:
                     raise TypeError(f"The content's type must be of a type: {expected_type}")
 
                 logger.info(f"A {note_class_name} note was created")
-
                 notes.append(note_class(title=row["title"],note_type=NoteType(row["note_type"]),content=row["content"],creation_time=row["created_at"]))
 
             with PostgresDb.connection as conn:
@@ -77,13 +76,7 @@ class PostgresDb:
                 existing_note = session.get(Note, note.note_id)
 
                 if existing_note is None:
-                    new_note = Note(
-                        note_id=note.note_id,
-                        title=note.title,
-                        note_type=note.note_type.value,
-                        created_at=note.created_at,
-                        updated_at=note.updated_at,
-                        content=getattr(note, "content"))
+                    new_note = Note(note_id=note.note_id,title=note.title,note_type=note.note_type.value,created_at=note.created_at,updated_at=note.updated_at,content=getattr(note, "content"))
 
                     session.add(new_note)
 
@@ -94,7 +87,7 @@ class PostgresDb:
                     existing_note.note_type = note.note_type.value
                     existing_note.created_at = note.created_at
                     existing_note.updated_at = note.updated_at
-                    existing_note.content =getattr(note, "content")
+                    existing_note.content = getattr(note, "content")
 
                     logger.info(f"Note number: {note.note_id} was updated in the postgres db")
 
@@ -109,13 +102,10 @@ class PostgresDb:
             counter = session.get(Counter, 1)
 
             if counter is None:
-                counter = Counter(id=1,counter=note_store.get_counter())
-                session.add(counter)
-
+                session.add(Counter(id=1,counter=note_store.get_counter()))
                 logger.info("Counter was added to the postgres db")
             else:
                 counter.counter = note_store.get_counter()
-
                 logger.info("Counter was updated in the postgres db")
 
             session.commit()
