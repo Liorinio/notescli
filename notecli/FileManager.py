@@ -38,7 +38,6 @@ class DbFileStorage:
 
 class PostgresDb:
     engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
-    connection = engine.connect()
     SessionLocal = sessionmaker(bind=engine)
 
     logger.info("connected successfully to the postgres db")
@@ -49,15 +48,15 @@ class PostgresDb:
             with PostgresDb.SessionLocal() as session:
                 try:
                     db_counter: Counter = session.execute(select(Counter)).scalar_one()
+
                 except NoResultFound:
                     db_counter = Counter(id=1, counter=0)
 
                 rows = session.scalars(select(Note)).all()
 
-            if not rows:
-                return NoteStore(db_data=[], counter=db_counter)
+                if not rows:
+                    return NoteStore(db_data=[],counter=db_counter)
 
-            else:
                 logger.info("The data was retrieved from the database")
                 notes: list[NoteBase] = []
 
@@ -69,19 +68,14 @@ class PostgresDb:
                         raise TypeError(f"The content's type must be of a type: {expected_type}")
 
                     logger.info(f"A {note_class_name} note was created")
+
                     notes.append(note_class(title=row.title,note_type=NoteType(row.note_type),content=row.content,creation_time=row.created_at))
 
-                session.commit()
-                session.close()
-
-                return NoteStore(db_data=notes, counter=db_counter)
+                return NoteStore(db_data=notes,counter=db_counter)
 
         except Exception as exception:
-            PostgresDb.connection.close()
-            raise Exception(exception)
-
-        finally:
-            PostgresDb.connection.close()
+            logger.exception(exception)
+            raise exception
 
     @staticmethod
     def save_to_db(note_store: NoteStore) -> None:
@@ -95,17 +89,12 @@ class PostgresDb:
                     counter = session.get(Counter, 1)
 
                     PostgresDb.__upsertNote__(notes, session)
-                    PostgresDb.__check_if_deleted__(postgres_ids, memory_ids, session)
-                    PostgresDb.__set_db_counter__(counter, session, note_store.get_counter())
+                    PostgresDb.__check_if_deleted__(postgres_ids,memory_ids,session)
+                    PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
-                session.commit()
-                session.close()
         except Exception as exception:
-            PostgresDb.connection.close()
-            raise Exception(exception)
-
-        finally:
-            session.close()
+            logger.exception(exception)
+            raise exception
 
     @staticmethod
     def __upsertNote__(notes: list[NoteBase], session: Session) -> None:
