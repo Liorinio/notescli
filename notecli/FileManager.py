@@ -74,8 +74,8 @@ class PostgresDb:
                 return NoteStore(db_data=notes,counter=db_counter)
 
         except Exception as exception:
+            session.close()
             logger.exception(exception)
-            raise exception
 
     @staticmethod
     def save_to_db(note_store: NoteStore) -> None:
@@ -93,8 +93,8 @@ class PostgresDb:
                     PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
         except Exception as exception:
+            session.close()
             logger.exception(exception)
-            raise exception
 
     @staticmethod
     def __upsertNote__(notes: list[NoteBase], session: Session) -> None:
