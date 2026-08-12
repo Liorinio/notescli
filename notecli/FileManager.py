@@ -76,6 +76,7 @@ class PostgresDb:
         except Exception as exception:
             session.close()
             logger.exception(exception)
+            raise exception
 
     @staticmethod
     def save_to_db(note_store: NoteStore) -> None:
@@ -95,6 +96,7 @@ class PostgresDb:
         except Exception as exception:
             session.close()
             logger.exception(exception)
+            raise exception
 
     @staticmethod
     def __upsertNote__(notes: list[NoteBase], session: Session) -> None:
