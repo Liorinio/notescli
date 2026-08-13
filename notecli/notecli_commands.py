@@ -85,7 +85,7 @@ def search_note_by_id(note_id: int, db: Db) -> str | None:
         return None
 
 
-def update_note_title(title: str, note_id: int, db: Db) -> None:
+def update_title_of_note(title: str, note_id: int, db: Db) -> None:
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is not None:
         returned_note.set_title(title)
@@ -95,7 +95,7 @@ def update_note_title(title: str, note_id: int, db: Db) -> None:
         logger.warning(f"Note number {note_id} wasn't updated")
 
 
-def update_note_content(content: str | list[str] | None, note_id: int, db: Db) -> None:
+def update_content_of_note(content: str | list[str] | None, note_id: int, db: Db) -> None:
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
@@ -139,7 +139,7 @@ def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date
         return None
 
 
-def show_content_url(note_id: int, db: Db) ->tuple[int, Any] | None:
+def show_content_url(note_id: int, db: Db) -> tuple[int, Any] | None:
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:

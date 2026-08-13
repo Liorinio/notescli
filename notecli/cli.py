@@ -2,10 +2,9 @@ import logging
 from datetime import datetime
 from typing import Optional
 import typer
-from notecli.app_types.NoteType import NoteType
 from notecli.memory_storage.db_schema import Db
-from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url, update_note_title, update_note_content
 from notecli.database.FileManager import PostgresDb
+from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, update_content, update_title, show_notes_structure, print_all_notes
 
 app = typer.Typer()
 note_app = typer.Typer()
@@ -25,7 +24,7 @@ def list_notes():
     """
     prints all the notes that are in the database
     """
-    print_all(db)
+    print_all_notes(db)
 
 @note_app.command()
 def add(given_note_type: str, title: str, content: list[str]):
@@ -35,18 +34,8 @@ def add(given_note_type: str, title: str, content: list[str]):
     :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
     adds a note to the database
     """
-    if db is not None:
-        note_type = NoteType[given_note_type]
 
-        if note_type in (NoteType.SIMPLE, NoteType.BOOKMARK):
-            if len(content) != 1:
-                raise ValueError(f"{note_type.name} notes require exactly one content value")
-            content_to_add: str | list[str] = content[0]
-        else:
-            content_to_add = content
-
-        adder(note_type, title, content_to_add, db)
-        PostgresDb.save_to_db(db.parse_to_dict())
+    add_note(given_note_type, title, content, db)
 
 @note_app.command()
 def delete(note_id: int):
@@ -54,16 +43,19 @@ def delete(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     deletes a note from the database
     """
+    '''
     if db is not None:
         delete_note(note_id, db)
         PostgresDb.save_to_db(db.parse_to_dict())
+        '''
+    delete_note(note_id, db)
 
 @note_app.command()
 def show_structure():
     """
     shows the structure of the notes that are available for usage in the system
     """
-    show_note_structure()
+    show_notes_structure()
 
 @note_app.command()
 def search(early_creation_date: datetime, late_creation_date: datetime,note_id: int):
@@ -73,12 +65,7 @@ def search(early_creation_date: datetime, late_creation_date: datetime,note_id: 
     :param note_id: The id of the note, needs to be an integer
     searches and prints a specific note
     """
-    if db is not None:
-        returned_note = search_note_by_date_and_id(early_creation_date,late_creation_date, db, note_id)
-        if returned_note is not None:
-            print(returned_note)
-        else:
-            print("None")
+    search_note(early_creation_date,late_creation_date, note_id, db)
 
 
 @note_app.command(name="view")
@@ -87,12 +74,7 @@ def view_note(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     shows a specific note
     """
-    if db is not None:
-        returned_description = search_note_by_id(note_id, db)
-        if returned_description is not None:
-            print(returned_description)
-        else:
-            print("None")
+    view_note(note_id, db)
 
 @note_app.command()
 def navigate(note_id: int):
@@ -100,13 +82,7 @@ def navigate(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     shows the content of the url, if the note is a BookMarkNote
     """
-    if db is not None:
-        returned_output = show_content_url(note_id, db)
-        if returned_output is not None:
-            print(returned_output[0])
-            print(returned_output[1])
-        else:
-            print("None")
+    navigate_url(note_id, db)
 
 @note_app.command()
 def update_title(title: str, note_id: int):
@@ -115,9 +91,7 @@ def update_title(title: str, note_id: int):
     :param note_id: The id of the note, needs to be an integer
     updates the title of a specific note
     """
-    if db is not None:
-        update_note_title(title, note_id, db)
-        PostgresDb.save_to_db(db.parse_to_dict())
+    update_title(title, note_id, db)
 
 @note_app.command()
 def update_content(content: list[str], note_id: int):
@@ -126,9 +100,7 @@ def update_content(content: list[str], note_id: int):
     :param note_id: The id of the note, needs to be an integer
     updates the content of a specific note
     """
-    if db is not None:
-        update_note_content(content, note_id, db)
-        PostgresDb.save_to_db(db.parse_to_dict())
+    update_content(content, note_id, db)
 
 @note_app.command()
 def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[str] = typer.Option(None, "--content", "-c")):
@@ -138,17 +110,7 @@ def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t
     :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content (an optional parameter)
     updates the content and/or the title of a specific note
     """
-    if db is not None:
-        if title:
-            update_note_title(title, note_id, db)
-
-        if content:
-            update_note_content(content, note_id, db)
-
-        if title or content:
-            PostgresDb.save_to_db(db.parse_to_dict())
-        else:
-            print("None")
+    update_note(note_id, db, title, content)
 
 if __name__ == "__main__":
     app()
