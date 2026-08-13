@@ -25,28 +25,38 @@ app = FastAPI(lifespan=lifespan)
 logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
 
 
-@app.get("/notes")
+@app.get("/notes", status_code=200)
 def show_metadata():
     show_notes_structure()
-    raise HTTPException(status_code=200, detail="metadata showed")
+    return {"message": "Metadata showed"}
 
-@app.post("/notes")
+@app.post("/notes", status_code=201)
 def add(given_note_type: str, title: str, content: list[str]):
-    add_note(given_note_type, title,content, db)
+    try:
+        add_note(given_note_type, title,content, db)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail=f'Invalid Key {error}')
+    return {"message": "Note created successfully"}
 
-@app.delete("/notes/{id}")
+@app.delete("/notes/{id}", status_code=200)
 def delete(note_id: int):
-    delete_note(note_id, db)
+    try:
+        delete_note(note_id, db)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    return {"message": "note deleted successfully"}
 
-@app.get("/notes/sreach")
+@app.get("/notes/sreach", status_code=200)
 def search(note_id: int, start_date: datetime, end_date: datetime):
     search_note(start_date, end_date, note_id, db)
 
-@app.post("/notes/{id}")
+@app.post("/notes/{id}", status_code=200)
 def update(note_id: int, title:Optional[str], content: Optional[str | list[str]]):
     update_note(note_id, db, title, content)
 
-@app.post("/notes/{id}/title")
+@app.post("/notes/{id}/title", status_code=200)
 def update_note_title(note_id: int, title:Optional[str]):
     if isinstance(title, str):
         update_title(title, note_id, db)
@@ -54,7 +64,7 @@ def update_note_title(note_id: int, title:Optional[str]):
     else:
         raise HTTPException(status_code=400)
 
-@app.post("/notes/{id}/content")
+@app.post("/notes/{id}/content", status_code=200)
 def update_note_content(note_id: int, content: Optional[str | list[str]]):
     if isinstance(content, str) or isinstance(content, list):
         update_content(content, note_id, db)
@@ -62,14 +72,14 @@ def update_note_content(note_id: int, content: Optional[str | list[str]]):
     else:
         raise HTTPException(status_code=400)
 
-@app.get("/notes/{id}/navigate")
+@app.get("/notes/{id}/navigate", status_code=200)
 def navigate(note_id: int):
     navigate_url(note_id, db)
 
-@app.get("/notes/{id}")
+@app.get("/notes/{id}", status_code=200)
 def view(note_id: int):
     view_note(note_id, db)
 
-@app.get("/notes")
+@app.get("/notes", status_code=200)
 def list_notes():
     print_all_notes(db)

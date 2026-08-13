@@ -38,7 +38,7 @@ def __parse_notes__(db: Db | None) -> list[NoteBase]:
     return db.get_db_data()
 
 
-def delete_note(note_id: int, db: Db | None) -> NoteBase:
+def deleter(note_id: int, db: Db | None) -> NoteBase:
     if db is not None:
         removed_note = db.remove_note_from_db(note_id)
         if removed_note:

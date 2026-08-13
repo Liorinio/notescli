@@ -64,7 +64,8 @@ class Db:
 
     def remove_note_from_db(self, note_id: int) -> NoteBase | None:
         if not self.db_data:
-            return None
+            logging.error("The database is empty")
+            raise ValueError("Database is empty or no records found.")
         else:
             for i in range(len(self.db_data)):
                 if i == note_id:

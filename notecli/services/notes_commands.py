@@ -5,7 +5,7 @@ from notecli.app_types.NoteType import NoteType
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
 from notecli.notecli_commands import adder, show_note_structure, search_note_by_date_and_id, search_note_by_id, \
-    update_content_of_note, update_title_of_note, show_content_url, print_all
+    update_content_of_note, update_title_of_note, show_content_url, print_all, deleter
 
 
 def add_note(given_note_type: str, title: str, content: list[str], db: Db | None):
@@ -25,7 +25,7 @@ def add_note(given_note_type: str, title: str, content: list[str], db: Db | None
 
 def delete_note(note_id: int, db: Db | None):
     if db is not None:
-        delete_note(note_id, db)
+        deleter(note_id, db)
         PostgresDb.save_to_db(db.parse_to_dict())
 
 
