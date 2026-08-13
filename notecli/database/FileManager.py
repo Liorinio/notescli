@@ -7,8 +7,8 @@ from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.schema import Sequence
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
-from notecli.note_store import NoteStore
-from notecli.tables import Note, Counter
+from notecli.memory_storage.note_store import NoteStore
+from notecli.database.tables import Note, Counter
 from sqlalchemy.orm import Session
 from notecli.app_types.NoteBase import NoteBase
 

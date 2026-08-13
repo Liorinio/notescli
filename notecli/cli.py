@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import Optional
 import typer
 from notecli.app_types.NoteType import NoteType
-from notecli.db_schema import Db
+from notecli.memory_storage.db_schema import Db
 from notecli.notecli_commands import adder, print_all, delete_note, show_note_structure, search_note_by_date_and_id, search_note_by_id, show_content_url, update_note_title, update_note_content
-from notecli.FileManager import PostgresDb
+from notecli.database.FileManager import PostgresDb
 
 app = typer.Typer()
 note_app = typer.Typer()

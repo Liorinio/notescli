@@ -1,5 +1,5 @@
 from notecli.app_types.NoteBase import NoteBase
-from notecli.tables import Counter
+from notecli.database.tables import Counter
 
 
 class NoteStore:
