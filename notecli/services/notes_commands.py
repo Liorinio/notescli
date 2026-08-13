@@ -22,6 +22,7 @@ def add_note(given_note_type: str, title: str, content: list[str], db: Db | None
         adder(note_type, title, content_to_add, db)
         PostgresDb.save_to_db(db.parse_to_dict())
 
+
 def delete_note(note_id: int, db: Db | None):
     if db is not None:
         delete_note(note_id, db)
@@ -31,13 +32,14 @@ def delete_note(note_id: int, db: Db | None):
 def show_notes_structure():
     show_note_structure()
 
+
 def print_all_notes(db: Db | None):
     print_all(db)
 
 
-def search_note(early_creation_date: datetime, late_creation_date: datetime,note_id: int, db:Db | None):
+def search_note(early_creation_date: datetime, late_creation_date: datetime, note_id: int, db: Db | None):
     if db is not None:
-        returned_note = search_note_by_date_and_id(early_creation_date,late_creation_date, db, note_id)
+        returned_note = search_note_by_date_and_id(early_creation_date, late_creation_date, db, note_id)
         if returned_note is not None:
             print(returned_note)
         else:
@@ -52,6 +54,7 @@ def view_note(note_id: int, db: Db | None):
         else:
             print("None")
 
+
 def navigate_url(note_id: int, db: Db | None):
     if db is not None:
         returned_output = show_content_url(note_id, db)
@@ -61,17 +64,20 @@ def navigate_url(note_id: int, db: Db | None):
         else:
             print("None")
 
-def update_title(title: str, note_id: int,  db: Db | None):
+
+def update_title(title: str, note_id: int, db: Db | None):
     if db is not None:
         update_title_of_note(title, note_id, db)
         PostgresDb.save_to_db(db.parse_to_dict())
 
-def update_content(content: list[str], note_id: int,  db: Db | None):
+
+def update_content(content: str | list[str] | None, note_id: int, db: Db | None):
     if db is not None:
         update_content_of_note(content, note_id, db)
         PostgresDb.save_to_db(db.parse_to_dict())
 
-def update_note(note_id: int,  db: Db | None, title: Optional[str], content: Optional[str]):
+
+def update_note(note_id: int, db: Db | None, title: Optional[str], content: Optional[str | list[str]]):
     if db is not None:
         if title:
             update_title_of_note(title, note_id, db)

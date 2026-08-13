@@ -43,11 +43,6 @@ def delete(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     deletes a note from the database
     """
-    '''
-    if db is not None:
-        delete_note(note_id, db)
-        PostgresDb.save_to_db(db.parse_to_dict())
-        '''
     delete_note(note_id, db)
 
 @note_app.command()
@@ -103,7 +98,7 @@ def update_content(content: list[str], note_id: int):
     update_content(content, note_id, db)
 
 @note_app.command()
-def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[str] = typer.Option(None, "--content", "-c")):
+def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[str | list[str]] = typer.Option(None, "--content", "-c")):
     """
     :param note_id: The id of the note, needs to be an integer
     :param title: The title of the given note needs to be a string (an optional parameter)
