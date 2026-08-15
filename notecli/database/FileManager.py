@@ -128,7 +128,7 @@ class PostgresDb:
                 logger.info(f"Note number: {note_id} was deleted from the postgres db")
 
     @staticmethod
-    def __set_db_counter__(counter:  type[Counter] | None, session:Session, memory_db_counter: int) -> None:
+    def __set_db_counter__(counter: Counter | None, session:Session, memory_db_counter: int) -> None:
         if counter is None:
             session.add(Counter(id=1, counter=memory_db_counter))
             logger.info("Counter was added to the postgres db")
