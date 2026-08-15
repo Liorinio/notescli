@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
-    if not isinstance(content, expected_type):
-        logger.error(f"Invalid type of content, required a {expected_type}")
-        raise TypeError(f"The content must be a {expected_type}")
-    logger.info(f"A {note_class_name} note was created")
-    return note_class(title=title, note_type=note_type, content=content, creation_time=datetime.now())
+    if isinstance(content, expected_type):
+        logger.info(f"A {note_class_name} note was created")
+        return note_class(title=title, note_type=note_type, content=content, creation_time=datetime.now())
+    logger.error(f"Invalid type of content, required a {expected_type}")
+    raise TypeError(f"The content must be a {expected_type}")
 
 
 def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
@@ -54,10 +54,11 @@ def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: D
 
 
 def print_all(db: Db | None) -> None:
-    if db is not None:
-        data = __parse_notes__(db)
-        for note in data:
-            print(note.to_str())
+    if db is None:
+        return
+    data = __parse_notes__(db)
+    for note in data:
+        print(note.to_str())
 
 
 def show_note_structure() -> None:
@@ -81,18 +82,18 @@ def search_note_by_id(note_id: int, db: Db) -> str | None:
     if returned_note is not None:
         logger.info(f"Note number {note_id} was found")
         return returned_note.to_str()
-    else:
-        return None
+    return None
 
 
 def update_title_of_note(title: str, note_id: int, db: Db) -> None:
     returned_note = db.get_note_from_db_by_id(note_id)
-    if returned_note is not None:
+    if returned_note is None:
+        logger.warning(f"Note number {note_id} wasn't updated")
+        return
+    else:
         returned_note.set_title(title)
         returned_note.set_update_date()
         logger.info(f"Note number {note_id} was updated")
-    else:
-        logger.warning(f"Note number {note_id} wasn't updated")
 
 
 def update_content_of_note(content: str | list[str] | None, note_id: int, db: Db) -> None:
@@ -124,9 +125,8 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
     if notes is not None:
         logger.info(f"the notes were found")
         return notes
-    else:
-        logger.warning(f"the notes were found")
-        return None
+    logger.warning(f"the notes were found")
+    return None
 
 
 def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int) -> str | None:
@@ -134,9 +134,8 @@ def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date
     if note is not None:
         logger.info(f"Note number {note_id} was found")
         return note.to_str()
-    else:
-        logger.warning(f"Note number {note_id} wasn't found")
-        return None
+    logger.warning(f"Note number {note_id} wasn't found")
+    return None
 
 
 def show_content_url(note_id: int, db: Db) -> tuple[int, Any] | None:

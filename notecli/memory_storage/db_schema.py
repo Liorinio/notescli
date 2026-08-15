@@ -63,10 +63,7 @@ class Db:
         return None
 
     def remove_note_from_db(self, note_id: int) -> NoteBase | None:
-        if not self.db_data:
-            logging.error("The database is empty")
-            raise ValueError("Database is empty or no records found.")
-        else:
+        if self.db_data:
             for i in range(len(self.db_data)):
                 if i == note_id:
                     logger.info(f"Note number {note_id} was found")
@@ -74,6 +71,9 @@ class Db:
 
             logger.warning("There is no such id in the database")
             return None
+        else:
+            logging.error("The database is empty")
+            raise ValueError("Database is empty or no records found.")
 
     def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime) -> list[NoteBase] | None:
         return [note for note in self.db_data if early_creation_date <= note.get_creation_date() <= late_creation_date]

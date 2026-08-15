@@ -28,13 +28,14 @@ class DbFileStorage:
     def load_from_db() -> NoteStore:
         path = Path(DbFileStorage.file_path)
 
-        if not path.exists() or path.stat().st_size == 0:
-            logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created")
-            return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
+        if path.exists() and path.stat().st_size != 0:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            logger.info(f"The database was read from the following path: {DbFileStorage.file_path}")
+            return NoteStore(db_data=data["db_data"], counter=data["counter"])
 
-        data = json.loads(path.read_text(encoding="utf-8"))
-        logger.info(f"The database was read from the following path: {DbFileStorage.file_path}")
-        return NoteStore(db_data=data["db_data"], counter=data["counter"])
+        logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created")
+        return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
+
 
 class PostgresDb:
     engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
@@ -104,7 +105,8 @@ class PostgresDb:
             existing_note = session.get(Note, note.note_id)
 
             if existing_note is None:
-                new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value,created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content"))
+                new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value,
+                                created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content"))
 
                 session.add(new_note)
                 logger.info(f"Note number: {note.note_id} was added to the postgres db")
