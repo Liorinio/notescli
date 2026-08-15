@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
 from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, update_content, update_title, show_notes_structure, print_all_notes
+import uvicorn
 
 db = None
 logger = logging.getLogger(__name__)
@@ -116,3 +117,5 @@ def list_notes():
         raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note's content updated successfully"}
 
+if __name__ == "__main__":
+    uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=True)

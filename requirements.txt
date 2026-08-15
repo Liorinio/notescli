@@ -4,3 +4,4 @@ typer
 psycopg
 fastapi
 sqlalchemy
+uvicorn
