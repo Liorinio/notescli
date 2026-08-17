@@ -24,7 +24,12 @@ def list_notes():
     """
     prints all the notes that are in the database
     """
-    print_all_notes(db)
+    try:
+        print_all_notes(db)
+    except Exception as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo("Notes showed successfully")
 
 @note_app.command()
 def add(given_note_type: str, title: str, content: list[str]):
@@ -34,8 +39,18 @@ def add(given_note_type: str, title: str, content: list[str]):
     :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content
     adds a note to the database
     """
+    try:
+        add_note(given_note_type, title, content, db)
 
-    add_note(given_note_type, title, content, db)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+
+    except KeyError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+
+    typer.echo("Note created successfully")
 
 @note_app.command()
 def delete(note_id: int):
@@ -43,7 +58,16 @@ def delete(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     deletes a note from the database
     """
-    delete_note(note_id, db)
+    try:
+        delete_note(note_id, db)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+    except BlockingIOError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+
+    typer.echo("Note deleted successfully")
 
 @note_app.command()
 def show_structure():
@@ -51,6 +75,7 @@ def show_structure():
     shows the structure of the notes that are available for usage in the system
     """
     show_notes_structure()
+    typer.echo("Metadata showed successfully")
 
 @note_app.command()
 def search(early_creation_date: datetime, late_creation_date: datetime,note_id: int):
@@ -60,7 +85,12 @@ def search(early_creation_date: datetime, late_creation_date: datetime,note_id: 
     :param note_id: The id of the note, needs to be an integer
     searches and prints a specific note
     """
-    search_note(early_creation_date,late_creation_date, note_id, db)
+    try:
+        search_note(early_creation_date,late_creation_date, note_id, db)
+    except Exception as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"Note number {note_id} was found successfully")
 
 
 @note_app.command(name="view")
@@ -69,7 +99,12 @@ def view_note(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     shows a specific note
     """
-    view_note(note_id, db)
+    try:
+        view_note(note_id, db)
+    except Exception as Error:
+        typer.echo(f"Error: {Error}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo("Note's content viewed successfully")
 
 @note_app.command()
 def navigate(note_id: int):
@@ -77,7 +112,13 @@ def navigate(note_id: int):
     :param note_id: The id of the note, needs to be an integer
     shows the content of the url, if the note is a BookMarkNote
     """
-    navigate_url(note_id, db)
+    try:
+        navigate_url(note_id, db)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo("Note's url navigated successfully")
+
 
 @note_app.command()
 def update_title(title: str, note_id: int):
@@ -86,7 +127,16 @@ def update_title(title: str, note_id: int):
     :param note_id: The id of the note, needs to be an integer
     updates the title of a specific note
     """
-    update_title(title, note_id, db)
+    try:
+        if isinstance(title, str):
+            update_title(title, note_id, db)
+        else:
+            raise typer.Exit(code=1)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+    typer.echo("Note's title updated successfully")
+
 
 @note_app.command()
 def update_content(content: list[str], note_id: int):
@@ -95,7 +145,16 @@ def update_content(content: list[str], note_id: int):
     :param note_id: The id of the note, needs to be an integer
     updates the content of a specific note
     """
-    update_content(content, note_id, db)
+    try:
+        if isinstance(content, str) or isinstance(content, list):
+            update_content(content, note_id, db)
+        else:
+            raise typer.Exit(code=1)
+    except Exception as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+    typer.echo("Note's content updated successfully")
+
 
 @note_app.command()
 def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[list[str]] = typer.Option(None, "--content", "-c")):
@@ -105,7 +164,12 @@ def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t
     :param content: The content of the note, needs to be a string or list of strings, for adding a simple or bookmark note, enter only one 'word' as the content (an optional parameter)
     updates the content and/or the title of a specific note
     """
-    update_note(note_id, db, title, content)
+    try:
+        update_note(note_id, db, title, content)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"Note number {note_id} was updated successfully")
 
 if __name__ == "__main__":
     app()
