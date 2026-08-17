@@ -1,15 +1,16 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Optional
 from fastapi import FastAPI, HTTPException, Request
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, update_content, update_title, show_notes_structure, print_all_notes
+from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, \
+    update_content, update_title, show_notes_structure, print_all_notes
 import uvicorn
 
 db = None
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
@@ -22,26 +23,28 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
-@app.get("/notes/metadata", status_code=200)
+@app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
     show_notes_structure()
     return {"message": "Metadata showed"}
 
-@app.post("/notes", status_code=201)
+
+@app.post("/notes", status_code=201, tags=["add and remove"])
 def add(given_note_type: str, title: str, content: list[str], request: Request):
     database = request.app.state.db
     try:
-        add_note(given_note_type, title,content, database)
+        add_note(given_note_type, title, content, database)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
         raise HTTPException(status_code=400, detail=f'Invalid Key {error}')
     return {"message": "Note created successfully"}
 
-@app.delete("/notes/{id}", status_code=204)
+
+@app.delete("/notes/{note_id}", status_code=204, tags=["add and remove/note id usage"])
 def delete(note_id: int, request: Request):
     database = request.app.state.db
     try:
@@ -50,20 +53,21 @@ def delete(note_id: int, request: Request):
         raise HTTPException(status_code=400, detail=str(error))
     except BlockingIOError as error:
         raise HTTPException(status_code=500, detail=str(error))
-    return {"message": "Note deleted successfully"}
+    return {"message": f"Note number {note_id} was deleted successfully"}
 
-@app.get("/notes/sreach", status_code=200)
+
+@app.get("/notes/sreach", status_code=200,tags=["view"])
 def search(note_id: int, start_date: datetime, end_date: datetime, request: Request):
     database = request.app.state.db
     try:
         search_note(start_date, end_date, note_id, database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note's content updated successfully"}
+    return {"message": f"Note number {note_id} was found successfully"}
 
 
-@app.patch("/notes/{id}", status_code=200)
-def update(note_id: int, title:Optional[str], content: Optional[str | list[str]], request: Request):
+@app.patch("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
+def update(note_id: int,request: Request, title: str | None = None, content: str | list[str] | None = None):
     database = request.app.state.db
     try:
         update_note(note_id, database, title, content)
@@ -71,8 +75,9 @@ def update(note_id: int, title:Optional[str], content: Optional[str | list[str]]
         raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note updated successfully"}
 
-@app.patch("/notes/{id}/title", status_code=200)
-def update_note_title(note_id: int, title:Optional[str], request: Request):
+
+@app.patch("/notes/{note_id}/title", status_code=200, tags=["note id usage/update"])
+def update_note_title(note_id: int, request: Request, title: str | None = None):
     database = request.app.state.db
     try:
         if isinstance(title, str):
@@ -81,11 +86,11 @@ def update_note_title(note_id: int, title:Optional[str], request: Request):
             raise HTTPException(status_code=400)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note created successfully"}
+    return {"message": "Note's title updated successfully"}
 
 
-@app.patch("/notes/{id}/content", status_code=200)
-def update_note_content(note_id: int, content: Optional[str | list[str]], request: Request):
+@app.patch("/notes/{id}/content", status_code=200, tags=["note id usage/update"])
+def update_note_content(note_id: int, request: Request,  content: str | list[str] | None = None):
     database = request.app.state.db
     try:
         if isinstance(content, str) or isinstance(content, list):
@@ -94,36 +99,38 @@ def update_note_content(note_id: int, content: Optional[str | list[str]], reques
             raise HTTPException(status_code=400)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note created successfully"}
+    return {"message": "Note's content updated successfully"}
 
-@app.get("/notes/{id}/navigate", status_code=200)
+
+@app.get("/notes/{note_id}/navigate", status_code=200, tags=["note id usage"])
 def navigate(note_id: int, request: Request):
     database = request.app.state.db
     try:
         navigate_url(note_id, database)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note created successfully"}
+    return {"message": "Note's url navigated successfully"}
 
 
-@app.get("/notes/{id}", status_code=200)
+@app.get("/notes/{note_id}", status_code=200, tags=["view/note id usage"])
 def view(note_id: int, request: Request):
     database = request.app.state.db
     try:
         view_note(note_id, database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note's content updated successfully"}
+    return {"message": "Note's content viewed successfully"}
 
 
-@app.get("/notes", status_code=200)
+@app.get("/notes", status_code=200, tags=["view"])
 def list_notes(request: Request):
     database = request.app.state.db
     try:
         print_all_notes(database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note's content updated successfully"}
+    return {"message": "Notes are listed"}
+
 
 if __name__ == "__main__":
     uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=True)
