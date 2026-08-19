@@ -4,9 +4,8 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.notecli_commands import show_note_structure
-from notecli.services.notes_commands import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, \
-    update_content, update_title, get_all_notes
+from notecli.services.note_service import get_note_structure, retrieve_all_notes
+from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title, get_all_notes
 import uvicorn
 
 db = None
@@ -29,7 +28,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 @app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
-    output = show_note_structure()
+    output = get_note_structure()
     return {"metadata": output ,"message": "Metadata showed"}
 
 
@@ -127,7 +126,7 @@ def view(note_id: int, request: Request):
 def list_notes(request: Request):
     database = request.app.state.db
     try:
-        list_of_notes = get_all_notes(database)
+        list_of_notes = retrieve_all_notes(database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     return {"data": list_of_notes, "message": "Notes are listed"}

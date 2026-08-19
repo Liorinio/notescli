@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Union, get_type_hints, Any
 import logging
@@ -10,7 +11,8 @@ from notecli.memory_storage.db_schema import Db
 logger = logging.getLogger(__name__)
 
 
-def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
+def __create_note_by_type__(note_type: NoteType, title: str,
+                            content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if isinstance(content, expected_type):
@@ -53,7 +55,7 @@ def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: D
     __add_to_db__(note, db)
 
 
-def print_all(db: Db | None) -> None | str:
+def get_all(db: Db | None) -> None | str:
     if db is None:
         return None
     data = __parse_notes__(db)
@@ -61,6 +63,17 @@ def print_all(db: Db | None) -> None | str:
     for note in data:
         output.append(note.to_str())
     return "\n".join(output)
+
+
+def retrieve_all_notes(db: Db | None):
+    if db is None:
+        return None
+    data = __parse_notes__(db)
+    return {
+        "notes":
+            [note.to_str() for note in data]
+    }
+
 
 
 def show_note_structure() -> str:
@@ -83,6 +96,25 @@ def show_note_structure() -> str:
     output.append("Field: content | Type: list[str]")
 
     return "\n".join(output)
+
+
+def get_note_structure():
+    hints = get_type_hints(NoteBase)
+    return {
+        "fields": {
+            field: field_type.__name__
+            for field, field_type in hints.items()
+        },
+        "NoteSimple": {
+            "content": "str"
+        },
+        "NoteBookMark": {
+            "content_site_url": "str"
+        },
+        "NoteList": {
+            "content": "list[str]"
+        }
+    }
 
 
 def search_note_by_id(note_id: int, db: Db) -> str | None:
@@ -137,7 +169,8 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
     return None
 
 
-def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db, note_id: int) -> str | None:
+def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db,
+                               note_id: int) -> str | None:
     note = db.get_notes_by_date_and_id(early_creation_date, late_creation_date, note_id)
     if note is not None:
         logger.info(f"Note number {note_id} was found")

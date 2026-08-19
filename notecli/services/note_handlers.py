@@ -3,8 +3,8 @@ from typing import Optional
 from notecli.app_types.NoteType import NoteType
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.notecli_commands import adder, show_note_structure, search_note_by_date_and_id, search_note_by_id, \
-    update_content_of_note, update_title_of_note, show_content_url, print_all, deleter
+from notecli.services.note_service import adder, search_note_by_date_and_id, search_note_by_id, \
+    update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
 
 
 def add_note(given_note_type: str, title: str, content: list[str], db: Db | None):
@@ -29,14 +29,9 @@ def delete_note(note_id: int, db: Db | None):
     deleter(note_id, db)
     PostgresDb.save_to_db(db.parse_to_dict())
 
-'''
-def show_notes_structure():
-    return show_note_structure()
-    '''
-
 
 def get_all_notes(db: Db | None):
-    list_of_notes = print_all(db)
+    list_of_notes = get_all(db)
     if list_of_notes is None:
         return None
     return list_of_notes
