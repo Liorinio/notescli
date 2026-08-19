@@ -29,33 +29,37 @@ def delete_note(note_id: int, db: Db | None):
     deleter(note_id, db)
     PostgresDb.save_to_db(db.parse_to_dict())
 
-
+'''
 def show_notes_structure():
-    show_note_structure()
+    return show_note_structure()
+    '''
 
 
-def print_all_notes(db: Db | None):
-    print_all(db)
+def get_all_notes(db: Db | None):
+    list_of_notes = print_all(db)
+    if list_of_notes is None:
+        return None
+    return list_of_notes
 
 
 def search_note(early_creation_date: datetime, late_creation_date: datetime, note_id: int, db: Db | None):
     if db is None:
-        return
+        return None
     returned_note = search_note_by_date_and_id(early_creation_date, late_creation_date, db, note_id)
     if returned_note is None:
-        print("None")
+        return None
     else:
-        print(returned_note)
+        return returned_note
 
 
-def view_note(note_id: int, db: Db | None):
+def view_specific_note(note_id: int, db: Db | None):
     if db is None:
-        return
+        return None
     returned_description = search_note_by_id(note_id, db)
     if returned_description is None:
-        print("None")
+        return None
     else:
-        print(returned_description)
+        return returned_description
 
 
 def navigate_url(note_id: int, db: Db | None):

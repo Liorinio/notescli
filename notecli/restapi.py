@@ -4,8 +4,9 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, \
-    update_content, update_title, show_notes_structure, print_all_notes
+from notecli.notecli_commands import show_note_structure
+from notecli.services.notes_commands import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, \
+    update_content, update_title, get_all_notes
 import uvicorn
 
 db = None
@@ -28,8 +29,8 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 @app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
-    show_notes_structure()
-    return {"message": "Metadata showed"}
+    output = show_note_structure()
+    return {"metadata": output ,"message": "Metadata showed"}
 
 
 @app.post("/notes", status_code=201, tags=["add and remove"])
@@ -60,10 +61,10 @@ def delete(note_id: int, request: Request):
 def search(note_id: int, start_date: datetime, end_date: datetime, request: Request):
     database = request.app.state.db
     try:
-        search_note(start_date, end_date, note_id, database)
+        requested_note = search_note(start_date, end_date, note_id, database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": f"Note number {note_id} was found successfully"}
+    return {"note": requested_note, "message": f"Note number {note_id} was found successfully"}
 
 
 @app.patch("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
@@ -116,20 +117,20 @@ def navigate(note_id: int, request: Request):
 def view(note_id: int, request: Request):
     database = request.app.state.db
     try:
-        view_note(note_id, database)
+        requested_note = view_specific_note(note_id, database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Note's content viewed successfully"}
+    return {"note": requested_note, "message": "Note's content viewed successfully"}
 
 
 @app.get("/notes", status_code=200, tags=["view"])
 def list_notes(request: Request):
     database = request.app.state.db
     try:
-        print_all_notes(database)
+        list_of_notes = get_all_notes(database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    return {"message": "Notes are listed"}
+    return {"data": list_of_notes, "message": "Notes are listed"}
 
 
 if __name__ == "__main__":

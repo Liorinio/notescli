@@ -4,14 +4,17 @@ from typing import Optional
 import typer
 from notecli.memory_storage.db_schema import Db
 from notecli.database.FileManager import PostgresDb
-from notecli.services.notes_commands import add_note, delete_note, view_note, navigate_url, update_note, search_note, update_content, update_title, show_notes_structure, print_all_notes
+from notecli.notecli_commands import show_note_structure
+from notecli.services.notes_commands import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, \
+    update_content, update_title, get_all_notes
 
 app = typer.Typer()
 note_app = typer.Typer()
 app.add_typer(note_app, name="note")
 db: Db | None = None
 
-logging.basicConfig(level = logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
 
 @app.callback()
 def main():
@@ -19,17 +22,19 @@ def main():
     db = Db()
     db = db.parse_from_dict(PostgresDb.load_from_db())
 
+
 @note_app.command(name="list")
 def list_notes():
     """
     prints all the notes that are in the database
     """
     try:
-        print_all_notes(db)
+        print(get_all_notes(db))
     except Exception as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=1)
     typer.echo("Notes showed successfully")
+
 
 @note_app.command()
 def add(given_note_type: str, title: str, content: list[str]):
@@ -52,6 +57,7 @@ def add(given_note_type: str, title: str, content: list[str]):
 
     typer.echo("Note created successfully")
 
+
 @note_app.command()
 def delete(note_id: int):
     """
@@ -69,16 +75,18 @@ def delete(note_id: int):
 
     typer.echo("Note deleted successfully")
 
+
 @note_app.command()
 def show_structure():
     """
     shows the structure of the notes that are available for usage in the system
     """
-    show_notes_structure()
+    print(show_note_structure())
     typer.echo("Metadata showed successfully")
 
+
 @note_app.command()
-def search(early_creation_date: datetime, late_creation_date: datetime,note_id: int):
+def search(early_creation_date: datetime, late_creation_date: datetime, note_id: int):
     """
     :param early_creation_date: The date which the note was created. needs to be a datetime type
     :param late_creation_date: The date which the note was updated. needs to be a datetime type
@@ -86,7 +94,7 @@ def search(early_creation_date: datetime, late_creation_date: datetime,note_id: 
     searches and prints a specific note
     """
     try:
-        search_note(early_creation_date,late_creation_date, note_id, db)
+        print(search_note(early_creation_date, late_creation_date, note_id, db))
     except Exception as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=1)
@@ -100,11 +108,12 @@ def view_note(note_id: int):
     shows a specific note
     """
     try:
-        view_note(note_id, db)
+        print(view_specific_note(note_id, db))
     except Exception as Error:
         typer.echo(f"Error: {Error}", err=True)
         raise typer.Exit(code=1)
     typer.echo("Note's content viewed successfully")
+
 
 @note_app.command()
 def navigate(note_id: int):
@@ -157,7 +166,8 @@ def update_content(content: list[str], note_id: int):
 
 
 @note_app.command()
-def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t"), content: Optional[list[str]] = typer.Option(None, "--content", "-c")):
+def update(note_id: int, title: Optional[str] = typer.Option(None, "--title", "-t"),
+           content: Optional[list[str]] = typer.Option(None, "--content", "-c")):
     """
     :param note_id: The id of the note, needs to be an integer
     :param title: The title of the given note needs to be a string (an optional parameter)
@@ -170,6 +180,7 @@ def update(note_id: int,title: Optional[str] = typer.Option(None, "--title", "-t
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=1)
     typer.echo(f"Note number {note_id} was updated successfully")
+
 
 if __name__ == "__main__":
     app()
