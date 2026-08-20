@@ -15,7 +15,7 @@ from notecli.app_types.NoteBase import NoteBase
 logger = logging.getLogger(__name__)
 
 class DbFileStorage:
-    file_path = "db2.json"
+    file_path = "db.json"
 
     @staticmethod
     def save_to_db(note_store: NoteStore):
