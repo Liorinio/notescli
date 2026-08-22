@@ -41,6 +41,8 @@ def add(given_note_type: str, title: str, content: list[str], request: Request):
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
         raise HTTPException(status_code=400, detail=f'Invalid Key {error}')
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note created successfully"}
 
 
@@ -53,6 +55,8 @@ def delete(note_id: int, request: Request):
         raise HTTPException(status_code=400, detail=str(error))
     except BlockingIOError as error:
         raise HTTPException(status_code=500, detail=str(error))
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
     return {"message": f"Note number {note_id} was deleted successfully"}
 
 
@@ -73,6 +77,8 @@ def update(note_id: int,request: Request, title: str | None = None, content: str
         update_note(note_id, database, title, content)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note updated successfully"}
 
 
@@ -85,6 +91,8 @@ def update_note_title(note_id: int, request: Request, title: str | None = None):
         else:
             raise HTTPException(status_code=400)
     except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note's title updated successfully"}
 
@@ -99,6 +107,8 @@ def update_note_content(note_id: int, request: Request,  content: str | list[str
             raise HTTPException(status_code=400)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note's content updated successfully"}
 
 
@@ -108,6 +118,8 @@ def navigate(note_id: int, request: Request):
     try:
         navigate_url(note_id, database)
     except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     return {"message": "Note's url navigated successfully"}
 
