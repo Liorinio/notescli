@@ -46,8 +46,12 @@ def deleter(note_id: int, db: Db | None) -> NoteBase:
         if removed_note:
             logger.info(f"Note number {note_id} was deleted from the database")
             return removed_note
-    logger.error("The db doesn't exist")
-    raise BlockingIOError("None exist db")
+        else:
+            logger.warning("The note doesn't exist")
+            raise ValueError("None exist index in the database")
+    else:
+        logger.error("The db doesn't exist")
+        raise BlockingIOError("None exist db")
 
 
 def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None) -> None:
@@ -76,28 +80,6 @@ def retrieve_all_notes(db: Db | None):
 
 
 def show_note_structure() -> str:
-    hints = get_type_hints(NoteBase)
-    output = ["The common fields between all the notes:"]
-
-    for field, field_type in hints.items():
-        output.append(f"Field: {field} | Type: {field_type.__name__}")
-
-    output.append("")
-    output.append("NoteSimple has the following field as well:")
-    output.append("Field: content | Type: str")
-
-    output.append("")
-    output.append("NoteBookMark has the following field as well:")
-    output.append("Field: content_site_url | Type: str")
-
-    output.append("")
-    output.append("NoteList has the following field as well:")
-    output.append("Field: content | Type: list[str]")
-
-    return "\n".join(output)
-
-
-def show_note_structure2() -> str:
     output = ["The common fields between all the notes:"]
     for field in common_metadata_dict:
         description, expected_type = common_metadata_dict[field]
@@ -108,26 +90,7 @@ def show_note_structure2() -> str:
     return "\n".join(output)
 
 
-def get_note_structure() -> dict[str, dict[str, Any] | dict[str, str]]:
-    hints = get_type_hints(NoteBase)
-    return {
-        "fields": {
-            field: field_type.__name__
-            for field, field_type in hints.items()
-        },
-        "NoteSimple": {
-            "content": "str"
-        },
-        "NoteBookMark": {
-            "content_site_url": "str"
-        },
-        "NoteList": {
-            "content": "list[str]"
-        }
-    }
-
-
-def get_note_structure2() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
+def get_note_structure() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
     return {
         "common fields": {
             field: (

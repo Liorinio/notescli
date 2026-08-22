@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.services.note_service import get_note_structure, retrieve_all_notes, get_note_structure2
+from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
 
@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 @app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
-    output = get_note_structure2()
+    output = get_note_structure()
     return {"metadata": output ,"message": "Metadata showed"}
 
 

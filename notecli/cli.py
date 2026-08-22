@@ -4,7 +4,7 @@ from typing import Optional
 import typer
 from notecli.memory_storage.db_schema import Db
 from notecli.database.FileManager import PostgresDb
-from notecli.services.note_service import show_note_structure, show_note_structure2
+from notecli.services.note_service import show_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title, get_all_notes
 
 app = typer.Typer()
@@ -80,7 +80,7 @@ def show_structure():
     """
     shows the structure of the notes that are available for usage in the system
     """
-    print(show_note_structure2())
+    print(show_note_structure())
     typer.echo("Metadata showed successfully")
 
 
