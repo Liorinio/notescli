@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.services.note_service import get_note_structure, retrieve_all_notes
+from notecli.services.note_service import get_note_structure, retrieve_all_notes, get_note_structure2
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
 
@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 @app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
-    output = get_note_structure()
+    output = get_note_structure2()
     return {"metadata": output ,"message": "Metadata showed"}
 
 
@@ -70,7 +70,7 @@ def search(note_id: int, start_date: datetime, end_date: datetime, request: Requ
     return {"note": requested_note, "message": f"Note number {note_id} was found successfully"}
 
 
-@app.patch("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
+@app.put("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
 def update(note_id: int,request: Request, title: str | None = None, content: str | list[str] | None = None):
     database = request.app.state.db
     try:
@@ -82,7 +82,7 @@ def update(note_id: int,request: Request, title: str | None = None, content: str
     return {"message": "Note updated successfully"}
 
 
-@app.patch("/notes/{note_id}/title", status_code=200, tags=["note id usage/update"])
+@app.put("/notes/{note_id}/title", status_code=200, tags=["note id usage/update"])
 def update_note_title(note_id: int, request: Request, title: str | None = None):
     database = request.app.state.db
     try:
@@ -97,7 +97,7 @@ def update_note_title(note_id: int, request: Request, title: str | None = None):
     return {"message": "Note's title updated successfully"}
 
 
-@app.patch("/notes/{id}/content", status_code=200, tags=["note id usage/update"])
+@app.put("/notes/{id}/content", status_code=200, tags=["note id usage/update"])
 def update_note_content(note_id: int, request: Request,  content: str | list[str] | None = None):
     database = request.app.state.db
     try:

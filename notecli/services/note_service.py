@@ -6,6 +6,7 @@ from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
 from notecli.app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import Db
+from notecli.metadata import common_metadata_dict, special_fields_dict
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,6 @@ def retrieve_all_notes(db: Db | None):
     }
 
 
-
 def show_note_structure() -> str:
     hints = get_type_hints(NoteBase)
     output = ["The common fields between all the notes:"]
@@ -97,7 +97,18 @@ def show_note_structure() -> str:
     return "\n".join(output)
 
 
-def get_note_structure():
+def show_note_structure2() -> str:
+    output = ["The common fields between all the notes:"]
+    for field in common_metadata_dict:
+        description, expected_type = common_metadata_dict[field]
+        output.append(f'Field: {field}, description: {description}, Type: {expected_type}')
+    for desc_str in special_fields_dict:
+        output.append(desc_str)
+
+    return "\n".join(output)
+
+
+def get_note_structure() -> dict[str, dict[str, Any] | dict[str, str]]:
     hints = get_type_hints(NoteBase)
     return {
         "fields": {
@@ -112,6 +123,27 @@ def get_note_structure():
         },
         "NoteList": {
             "content": "list[str]"
+        }
+    }
+
+
+def get_note_structure2() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
+    return {
+        "common fields": {
+            field: (
+                common_metadata_dict[field][0],
+                common_metadata_dict[field][1]
+            )
+            for field in common_metadata_dict
+        },
+        "NoteSimple": {
+            special_fields_dict[0]
+        },
+        "NoteBookMark": {
+            special_fields_dict[0]
+        },
+        "NoteList": {
+            special_fields_dict[2]
         }
     }
 
