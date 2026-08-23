@@ -59,12 +59,12 @@ def view_specific_note(note_id: int, db: Db | None):
 
 def navigate_url(note_id: int, db: Db | None):
     if db is None:
-        return
+        return None
     returned_output = show_content_url(note_id, db)
     if returned_output is None:
-        print("None")
+        return None
     else:
-        print(returned_output[0], returned_output[1])
+        return returned_output[0], returned_output[1]
 
 
 def update_title(title: str, note_id: int, db: Db | None):
@@ -84,10 +84,10 @@ def update_content(content: str | list[str] | None, note_id: int, db: Db | None)
 def update_note(note_id: int, db: Db | None, title: Optional[str], content: Optional[str | list[str]]):
     if db is None:
         return
-    if title:
+    if title is not None:
         update_title_of_note(title, note_id, db)
 
-    if content:
+    if content is not None:
         update_content_of_note(content, note_id, db)
 
     if title or content:

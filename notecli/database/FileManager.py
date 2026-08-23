@@ -106,7 +106,7 @@ class PostgresDb:
 
             if existing_note is None:
                 new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value,
-                                created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content"))
+                                created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content", getattr(note, "content_site_url", None)))
 
                 session.add(new_note)
                 logger.info(f"Note number: {note.note_id} was added to the postgres db")
@@ -116,7 +116,10 @@ class PostgresDb:
                 existing_note.note_type = note.note_type.value
                 existing_note.created_at = note.created_at
                 existing_note.updated_at = note.updated_at
-                existing_note.content = getattr(note, "content")
+                if hasattr(note, "content"):
+                    existing_note.content = note.content
+                elif hasattr(note, "content_site_url"):
+                    existing_note.content = note.content_site_url
 
                 logger.info(f"Note number: {note.note_id} was updated in the postgres db")
 

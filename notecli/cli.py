@@ -121,7 +121,7 @@ def navigate(note_id: int):
     shows the content of the url, if the note is a BookMarkNote
     """
     try:
-        navigate_url(note_id, db)
+        print(navigate_url(note_id, db))
     except ValueError as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=1)
