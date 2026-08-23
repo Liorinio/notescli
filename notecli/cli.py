@@ -137,12 +137,14 @@ def update_title(title: str, note_id: int):
     """
     try:
         if isinstance(title, str):
-            update_title(title, note_id, db)
+            res = update_title(title, note_id, db)
+            if not res:
+                raise typer.Exit(code=1)
         else:
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=2)
     except ValueError as error:
         typer.echo(f"Error: {error}", err=True)
-        raise typer.Exit(code=2)
+        raise typer.Exit(code=3)
     typer.echo("Note's title updated successfully")
 
 
@@ -155,12 +157,14 @@ def update_content(content: list[str], note_id: int):
     """
     try:
         if isinstance(content, str) or isinstance(content, list):
-            update_content(content, note_id, db)
+            res = update_content(content, note_id, db)
+            if not res:
+                raise typer.Exit(code=1)
         else:
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=2)
     except Exception as error:
         typer.echo(f"Error: {error}", err=True)
-        raise typer.Exit(code=2)
+        raise typer.Exit(code=3)
     typer.echo("Note's content updated successfully")
 
 
@@ -174,10 +178,12 @@ def update(note_id: int, title: Optional[str] = typer.Option(None, "--title", "-
     updates the content and/or the title of a specific note
     """
     try:
-        update_note(note_id, db, title, content)
+        res = update_note(note_id, db, title, content)
+        if not res:
+            raise typer.Exit(code=1)
     except ValueError as error:
         typer.echo(f"Error: {error}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=2)
     typer.echo(f"Note number {note_id} was updated successfully")
 
 

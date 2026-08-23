@@ -69,9 +69,10 @@ def navigate_url(note_id: int, db: Db | None):
 
 def update_title(title: str, note_id: int, db: Db | None):
     if db is None:
-        return
-    update_title_of_note(title, note_id, db)
+        return False
+    is_updated =update_title_of_note(title, note_id, db)
     PostgresDb.save_to_db(db.parse_to_dict())
+    return is_updated
 
 
 def update_content(content: str | list[str] | None, note_id: int, db: Db | None):

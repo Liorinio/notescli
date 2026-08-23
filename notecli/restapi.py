@@ -80,7 +80,9 @@ def update(note_id: int,request: Request, title: str | None = None, content: str
     database = request.app.state.db
 
     try:
-        update_note(note_id, database, title, content)
+        res = update_note(note_id, database, title, content)
+        if not res:
+            raise HTTPException(status_code=400)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except Exception as error:
@@ -94,7 +96,9 @@ def update_note_title(note_id: int, request: Request, title: str | None = None):
     database = request.app.state.db
     try:
         if isinstance(title, str):
-            update_title(title, note_id, database)
+            res = update_title(title, note_id, database)
+            if not res:
+                raise HTTPException(status_code=400)
         else:
             raise HTTPException(status_code=400)
     except ValueError as error:
@@ -110,7 +114,9 @@ def update_note_content(note_id: int, request: Request,  content: str | list[str
     database = request.app.state.db
     try:
         if isinstance(content, str) or isinstance(content, list):
-            update_content(content, note_id, database)
+            res = update_content(content, note_id, database)
+            if not res:
+                raise HTTPException(status_code=400)
         else:
             raise HTTPException(status_code=400)
     except ValueError as error:
