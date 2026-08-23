@@ -11,6 +11,9 @@ from notecli.memory_storage.note_store import NoteStore
 from notecli.database.tables import Note, Counter
 from sqlalchemy.orm import Session
 from notecli.app_types.NoteBase import NoteBase
+from dotenv import load_dotenv
+import os
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +41,8 @@ class DbFileStorage:
 
 
 class PostgresDb:
-    engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+    load_dotenv()
+    engine = create_engine(os.environ["DATABASE_URL"])
     SessionLocal = sessionmaker(bind=engine)
 
     logger.info("connected successfully to the postgres db")
