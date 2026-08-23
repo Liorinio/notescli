@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, Any
+from typing import Union, Any, cast
 import logging
 from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
@@ -119,39 +119,35 @@ def search_note_by_id(note_id: int, db: Db) -> str | None:
     return None
 
 
-def update_title_of_note(title: str, note_id: int, db: Db) -> None:
+def update_title_of_note(title: str, note_id: int, db: Db) -> bool:
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is None:
         logger.warning(f"Note number {note_id} wasn't updated")
-        return
+        return False
     else:
         returned_note.set_title(title)
         returned_note.set_update_date()
         logger.info(f"Note number {note_id} was updated")
+        return True
 
 
-def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> None:
+def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> bool:
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
         logger.warning("Note with id %s not found", note_id)
-        return None
+        return False
 
     expected_type = (NOTE_INFO[note.note_type])[1]
 
-    print(expected_type)
-
-    if (
-            isinstance(note, (NoteSimple, NoteList, NoteBookMark))
-            and isinstance(content, expected_type)
-    ):
-        note.set_content(content)
+    if isinstance(content, expected_type):
+        cast(Any, note).set_content(content)
         note.set_update_date()
         logger.info(f"Note number {note_id} was updated")
-        return None
+        return True
 
     logger.warning("Invalid content type %s for note type %s", type(content).__name__, type(note).__name__)
-    return None
+    return False
 
 
 def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase] | None:

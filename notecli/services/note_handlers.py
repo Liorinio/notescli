@@ -76,21 +76,26 @@ def update_title(title: str, note_id: int, db: Db | None):
 
 def update_content(content: str | list[str] | None, note_id: int, db: Db | None):
     if db is None:
-        return
-    update_content_of_note(content, note_id, db)
+        return False
+    is_updated = update_content_of_note(content, note_id, db)
     PostgresDb.save_to_db(db.parse_to_dict())
+    return is_updated
 
 
 def update_note(note_id: int, db: Db | None, title: Optional[str], content: Optional[str | list[str]]):
     if db is None:
         return
+
+    is_title_updated = False
+    is_content_updated = False
+
     if title is not None:
-        update_title_of_note(title, note_id, db)
+        is_title_updated = update_title_of_note(title, note_id, db)
 
     if content is not None:
-        update_content_of_note(content, note_id, db)
+        is_content_updated = update_content_of_note(content, note_id, db)
 
-    if title or content:
+    if is_content_updated or is_title_updated:
         PostgresDb.save_to_db(db.parse_to_dict())
     else:
         print("None")
