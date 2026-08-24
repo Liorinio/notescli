@@ -85,19 +85,19 @@ def show_structure():
 
 
 @note_app.command()
-def search(early_creation_date: datetime, late_creation_date: datetime, note_id: int):
+def search(early_creation_date: datetime, late_creation_date: datetime, title: str):
     """
+    :param title: The title of the note, needs to be a string type
     :param early_creation_date: The date which the note was created. needs to be a datetime type
     :param late_creation_date: The date which the note was updated. needs to be a datetime type
-    :param note_id: The id of the note, needs to be an integer
     searches and prints a specific note
     """
     try:
-        print(search_note(early_creation_date, late_creation_date, note_id, db))
+        print(search_note(early_creation_date, late_creation_date, title, db))
     except Exception as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=1)
-    typer.echo(f"Note number {note_id} was found successfully")
+    typer.echo(f"Notes were found successfully")
 
 
 @note_app.command(name="view")

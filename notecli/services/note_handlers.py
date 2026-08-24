@@ -3,7 +3,7 @@ from typing import Optional
 from notecli.app_types.NoteType import NoteType
 from notecli.database.FileManager import PostgresDb
 from notecli.memory_storage.db_schema import Db
-from notecli.services.note_service import adder, search_note_by_date_and_id, search_note_by_id, \
+from notecli.services.note_service import adder, search_note_by_date_and_title, search_note_by_id, \
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
 
 
@@ -37,14 +37,14 @@ def get_all_notes(db: Db | None):
     return list_of_notes
 
 
-def search_note(early_creation_date: datetime, late_creation_date: datetime, note_id: int, db: Db | None):
+def search_note(early_creation_date: datetime, late_creation_date: datetime, title: str, db: Db | None):
     if db is None:
         return None
-    returned_note = search_note_by_date_and_id(early_creation_date, late_creation_date, db, note_id)
-    if returned_note is None:
+    returned_notes = search_note_by_date_and_title(early_creation_date, late_creation_date, db, title)
+    if returned_notes is None:
         return None
     else:
-        return returned_note
+        return returned_notes
 
 
 def view_specific_note(note_id: int, db: Db | None):

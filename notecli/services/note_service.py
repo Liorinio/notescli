@@ -159,13 +159,12 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
     return None
 
 
-def search_note_by_date_and_id(early_creation_date: datetime, late_creation_date: datetime, db: Db,
-                               note_id: int) -> str | None:
-    note = db.get_notes_by_date_and_id(early_creation_date, late_creation_date, note_id)
-    if note is not None:
-        logger.info(f"Note number {note_id} was found")
-        return note.to_str()
-    logger.warning(f"Note number {note_id} wasn't found")
+def search_note_by_date_and_title(early_creation_date: datetime, late_creation_date: datetime, db: Db, title: str):
+    notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
+    if notes is not None:
+        logger.info(f"Notes were found")
+        return [returned_note.to_str() for returned_note in notes]
+    logger.warning(f"Notes weren't found")
     return None
 
 

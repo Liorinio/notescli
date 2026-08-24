@@ -65,14 +65,14 @@ def delete(note_id: int, request: Request):
 
 
 @app.get("/notes/sreach", status_code=200,tags=["view"])
-def search(note_id: int, start_date: datetime, end_date: datetime, request: Request):
+def search(title: str, start_date: datetime, end_date: datetime, request: Request):
     database = request.app.state.db
     try:
-        requested_note = search_note(start_date, end_date, note_id, database)
+        requested_note = search_note(start_date, end_date, title, database)
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Note was found")
-    return {"note": requested_note, "message": f"Note number {note_id} was found successfully"}
+    return {"note": requested_note, "message": f"Notes were found successfully"}
 
 
 @app.put("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
