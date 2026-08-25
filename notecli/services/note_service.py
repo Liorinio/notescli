@@ -211,7 +211,7 @@ def search_note_by_date_and_title(early_creation_date: datetime, late_creation_d
 
 def show_content_url(note_id: int, db: Db) -> tuple[int, Any] | None:
     """
-    Gets an id of a note, and shows the response content of a http request of its url, if it is a bookMark note
+    Gets an id of a note, and shows the response content of an http request of its url, if it is a bookMark note
     """
     note = db.get_note_from_db_by_id(note_id)
 
