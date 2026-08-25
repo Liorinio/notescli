@@ -26,8 +26,8 @@ def add_note(given_note_type: str, title: str, content: list[str], db: Db | None
 def delete_note(note_id: int, db: Db | None):
     if db is None:
         return
-    deleter(note_id, db)
-    PostgresDb.save_to_db(db.parse_to_dict())
+    removed_note = deleter(note_id, db)
+    PostgresDb.save_to_db(db.parse_to_dict(), removed_note.note_id)
 
 
 def get_all_notes(db: Db | None):

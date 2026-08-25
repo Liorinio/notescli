@@ -84,24 +84,34 @@ class PostgresDb:
             raise exception
 
     @staticmethod
-    def save_to_db(note_store: NoteStore) -> None:
+    def save_to_db(
+            note_store: NoteStore,
+            optional_deleted_note_id: int | None = None
+    ) -> None:
         try:
             notes: list[NoteBase] = note_store.get_db_data()
-            memory_ids = {note.note_id for note in notes}
 
             with Session(PostgresDb.engine) as session:
                 with session.begin():
-                    postgres_ids = set(session.scalars(select(Note.note_id)).all())
                     counter = session.get(Counter, 1)
 
                     PostgresDb.__upsertNote__(notes, session)
-                    PostgresDb.__check_if_deleted__(postgres_ids,memory_ids,session)
-                    PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
-        except Exception as exception:
-            session.close()
-            logger.exception(exception)
-            raise exception
+                    if optional_deleted_note_id is not None:
+                        PostgresDb.delete_note_for_postgres(
+                            optional_deleted_note_id,
+                            session
+                        )
+
+                    PostgresDb.__set_db_counter__(
+                        counter,
+                        session,
+                        note_store.get_counter()
+                    )
+
+        except Exception:
+            logger.exception("Failed to save notes to PostgreSQL")
+            raise
 
     @staticmethod
     def __upsertNote__(notes: list[NoteBase], session: Session) -> None:
@@ -127,6 +137,25 @@ class PostgresDb:
 
                 logger.info(f"Note number: {note.note_id} was updated in the postgres db")
 
+
+    @staticmethod
+    def delete_note_for_postgres(
+            removed_note_id: int,
+            session: Session
+    ) -> None:
+        deleted_note = session.get(Note, removed_note_id)
+
+        if deleted_note is None:
+            raise ValueError(
+                f"Note {removed_note_id} does not exist in the database"
+            )
+
+        session.delete(deleted_note)
+
+        logger.info(
+            "Note number %s was deleted from the postgres db",
+            removed_note_id
+        )
 
     @staticmethod
     def __check_if_deleted__(postgres_ids: Sequence[int], memory_ids: set[int], session: Session) -> None:
