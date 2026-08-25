@@ -8,6 +8,9 @@ from notecli.services.note_service import adder, search_note_by_date_and_title, 
 
 
 def add_note(given_note_type: str, title: str, content: list[str], db: Db | None):
+    """
+    Adds a note to db
+    """
     if db is None:
         return
     note_type = NoteType[given_note_type.upper()]
@@ -24,6 +27,9 @@ def add_note(given_note_type: str, title: str, content: list[str], db: Db | None
 
 
 def delete_note(note_id: int, db: Db | None):
+    """
+    Deletes a note from the db
+    """
     if db is None:
         return
     removed_note = deleter(note_id, db)
@@ -31,6 +37,9 @@ def delete_note(note_id: int, db: Db | None):
 
 
 def get_all_notes(db: Db | None):
+    """
+    Lists the notes from db
+    """
     list_of_notes = get_all(db)
     if list_of_notes is None:
         return None
@@ -38,6 +47,9 @@ def get_all_notes(db: Db | None):
 
 
 def search_note(early_creation_date: datetime, late_creation_date: datetime, title: str, db: Db | None):
+    """
+    Searches a note in the db by its title and a range of dates
+    """
     if db is None:
         return None
     returned_notes = search_note_by_date_and_title(early_creation_date, late_creation_date, db, title)
@@ -48,6 +60,9 @@ def search_note(early_creation_date: datetime, late_creation_date: datetime, tit
 
 
 def view_specific_note(note_id: int, db: Db | None):
+    """
+    Views a note
+    """
     if db is None:
         return None
     returned_description = search_note_by_id(note_id, db)
@@ -58,6 +73,9 @@ def view_specific_note(note_id: int, db: Db | None):
 
 
 def navigate_url(note_id: int, db: Db | None):
+    """
+    Get a note's id and gets its http request output (if it is a bookmark note)
+    """
     if db is None:
         return None
     returned_output = show_content_url(note_id, db)
@@ -68,6 +86,9 @@ def navigate_url(note_id: int, db: Db | None):
 
 
 def update_title(title: str | None, note_id: int, db: Db | None):
+    """
+    Updates the title of a note based on the note's id
+    """
     if db is None:
         return False
     if title is None:
@@ -78,6 +99,9 @@ def update_title(title: str | None, note_id: int, db: Db | None):
 
 
 def update_content(content: str | list[str] | None, note_id: int, db: Db | None):
+    """
+    Updates the content of a note based on the note's id
+    """
     if db is None:
         return False
     if content is None:
@@ -88,6 +112,9 @@ def update_content(content: str | list[str] | None, note_id: int, db: Db | None)
 
 
 def update_note(note_id: int, db: Db | None, title: Optional[str], content: Optional[str | list[str]]):
+    """
+    Updates the title and the content of a note based on the note's id
+    """
     if db is None:
         return False
 

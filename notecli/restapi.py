@@ -61,7 +61,6 @@ def delete(note_id: int, request: Request):
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Note was deleted")
-    return {"message": f"Note number {note_id} was deleted successfully"}
 
 
 @app.get("/notes/sreach", status_code=200,tags=["view"])

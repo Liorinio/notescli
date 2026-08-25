@@ -11,8 +11,10 @@ from notecli.metadata import common_metadata_dict, special_fields_dict
 logger = logging.getLogger(__name__)
 
 
-def __create_note_by_type__(note_type: NoteType, title: str,
-                            content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
+def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str, list[str]]) -> NoteSimple | NoteList | NoteBookMark:
+    """
+    Creates a note according to its type
+    """
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if isinstance(content, expected_type):
@@ -22,18 +24,24 @@ def __create_note_by_type__(note_type: NoteType, title: str,
     raise TypeError(f"The content must be a {expected_type}")
 
 
-def __add_to_db__(new_data: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
+def __add_to_db__(new_note: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
+    """
+    Adds the note to the memory "db"
+    """
     if db is None:
         logger.error(f"The db doesn't exist")
         raise BlockingIOError("None exist db")
     note_id = db.get_counter()
     db.update_counter_by_one()
-    new_data.set_id(note_id)
+    new_note.set_id(note_id)
     logger.info(f"Note number {note_id} is ready to be inserted to the database")
-    db.add_note_to_db(new_data)
+    db.add_note_to_db(new_note)
 
 
 def __parse_notes__(db: Db | None) -> list[NoteBase]:
+    """
+    Gets list of all the notes from the memory db
+    """
     if db is None:
         logger.error("The db doesn't exist")
         return []
@@ -41,6 +49,9 @@ def __parse_notes__(db: Db | None) -> list[NoteBase]:
 
 
 def deleter(note_id: int, db: Db | None) -> NoteBase:
+    """
+    Deletes a note from the memory db
+    """
     if db is not None:
         removed_note = db.remove_note_from_db(note_id)
         if removed_note:
@@ -55,11 +66,17 @@ def deleter(note_id: int, db: Db | None) -> NoteBase:
 
 
 def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None) -> None:
+    """
+    Creates and adds a note to the memory db
+    """
     note = __create_note_by_type__(note_type, title, content)
     __add_to_db__(note, db)
 
 
 def get_all(db: Db | None) -> None | str:
+    """
+    Returns all the notes, suitable for cli
+    """
     if db is None:
         return None
     data = __parse_notes__(db)
@@ -70,6 +87,9 @@ def get_all(db: Db | None) -> None | str:
 
 
 def retrieve_all_notes(db: Db | None):
+    """
+    Returns all the notes, suitable for rest-api
+    """
     if db is None:
         return None
     data = __parse_notes__(db)
@@ -80,6 +100,9 @@ def retrieve_all_notes(db: Db | None):
 
 
 def show_note_structure() -> str:
+    """
+    Returns the structure of a note as a string, suitable for cli
+    """
     output = ["The common fields between all the notes:"]
     for field in common_metadata_dict:
         description, expected_type = common_metadata_dict[field]
@@ -91,6 +114,9 @@ def show_note_structure() -> str:
 
 
 def get_note_structure() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
+    """
+    Returns the structure of a note as a dict, suitable for rest-api
+    """
     return {
         "common fields": {
             field: (
@@ -112,6 +138,9 @@ def get_note_structure() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
 
 
 def search_note_by_id(note_id: int, db: Db) -> str | None:
+    """
+    Gets a note's id, and finds the note accordingly
+    """
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is not None:
         logger.info(f"Note number {note_id} was found")
@@ -120,6 +149,9 @@ def search_note_by_id(note_id: int, db: Db) -> str | None:
 
 
 def update_title_of_note(title: str, note_id: int, db: Db) -> bool:
+    """
+    Gets content for update and note's id, and updates the note's content
+    """
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is None:
         logger.warning(f"Note number {note_id} wasn't updated")
@@ -132,6 +164,9 @@ def update_title_of_note(title: str, note_id: int, db: Db) -> bool:
 
 
 def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> bool:
+    """
+    Gets content for update and note's id, and updates the note's content
+    """
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
@@ -151,6 +186,9 @@ def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> bo
 
 
 def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase] | None:
+    """
+    Gets a range of dates, and finds the note accordingly
+    """
     notes = db.get_notes_by_date(early_creation_date, late_creation_date)
     if notes is not None:
         logger.info(f"the notes were found")
@@ -160,6 +198,9 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
 
 
 def search_note_by_date_and_title(early_creation_date: datetime, late_creation_date: datetime, db: Db, title: str):
+    """
+    Gets a range of dates and title, and finds the note accordingly
+    """
     notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
     if notes is not None:
         logger.info(f"Notes were found")
@@ -169,6 +210,9 @@ def search_note_by_date_and_title(early_creation_date: datetime, late_creation_d
 
 
 def show_content_url(note_id: int, db: Db) -> tuple[int, Any] | None:
+    """
+    Gets an id of a note, and shows the response content of a http request of its url, if it is a bookMark note
+    """
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:

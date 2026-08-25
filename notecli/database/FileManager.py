@@ -4,7 +4,6 @@ from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker
-from sqlalchemy.sql.schema import Sequence
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
 from notecli.memory_storage.note_store import NoteStore
@@ -51,12 +50,14 @@ class PostgresDb:
     def load_from_db() -> NoteStore:
         try:
             with PostgresDb.SessionLocal() as session:
+                #trying to retrieve the counter from the postgres
                 try:
                     db_counter: Counter = session.execute(select(Counter)).scalar_one()
 
                 except NoResultFound:
                     db_counter = Counter(id=1, counter=0)
 
+                #retrieving all the notes from the postgres db
                 rows = session.scalars(select(Note)).all()
 
                 if not rows:
@@ -74,6 +75,7 @@ class PostgresDb:
 
                     logger.info(f"A {note_class_name} note was created")
 
+                    #creating the notes in the memory
                     notes.append(note_class(title=row.title,note_type=NoteType(row.note_type),content=row.content,creation_time=row.created_at))
 
                 return NoteStore(db_data=notes,counter=db_counter)
@@ -84,10 +86,7 @@ class PostgresDb:
             raise exception
 
     @staticmethod
-    def save_to_db(
-            note_store: NoteStore,
-            optional_deleted_note_id: int | None = None
-    ) -> None:
+    def save_to_db(note_store: NoteStore,optional_deleted_note_id: int | None = None) -> None:
         try:
             notes: list[NoteBase] = note_store.get_db_data()
 
@@ -98,23 +97,19 @@ class PostgresDb:
                     PostgresDb.__upsertNote__(notes, session)
 
                     if optional_deleted_note_id is not None:
-                        PostgresDb.delete_note_for_postgres(
-                            optional_deleted_note_id,
-                            session
-                        )
+                        PostgresDb.delete_note_for_postgres(optional_deleted_note_id,session)
 
-                    PostgresDb.__set_db_counter__(
-                        counter,
-                        session,
-                        note_store.get_counter()
-                    )
+                    PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
-        except Exception:
+        except Exception as exception:
             logger.exception("Failed to save notes to PostgreSQL")
-            raise
+            raise exception
 
     @staticmethod
     def __upsertNote__(notes: list[NoteBase], session: Session) -> None:
+        """
+        Function that checks if the note exists in the Postgres db, if it is, the function updates it, if not, the function creates it.
+        """
         for note in notes:
             existing_note = session.get(Note, note.note_id)
 
@@ -139,34 +134,21 @@ class PostgresDb:
 
 
     @staticmethod
-    def delete_note_for_postgres(
-            removed_note_id: int,
-            session: Session
-    ) -> None:
+    def delete_note_for_postgres(removed_note_id: int,session: Session) -> None:
         deleted_note = session.get(Note, removed_note_id)
 
         if deleted_note is None:
-            raise ValueError(
-                f"Note {removed_note_id} does not exist in the database"
-            )
+            raise ValueError(f"Note {removed_note_id} does not exist in the database")
 
         session.delete(deleted_note)
 
-        logger.info(
-            "Note number %s was deleted from the postgres db",
-            removed_note_id
-        )
-
-    @staticmethod
-    def __check_if_deleted__(postgres_ids: Sequence[int], memory_ids: set[int], session: Session) -> None:
-        for note_id in postgres_ids:
-            if note_id not in memory_ids:
-                deleted_note = session.get(Note, note_id)
-                session.delete(deleted_note)
-                logger.info(f"Note number: {note_id} was deleted from the postgres db")
+        logger.info("Note number %s was deleted from the postgres db",removed_note_id)
 
     @staticmethod
     def __set_db_counter__(counter: Counter | None, session:Session, memory_db_counter: int) -> None:
+        """
+       Setting the counter of the db in the Postgres db
+        """
         if counter is None:
             session.add(Counter(id=1, counter=memory_db_counter))
             logger.info("Counter was added to the postgres db")
