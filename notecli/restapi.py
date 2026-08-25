@@ -7,6 +7,7 @@ from notecli.memory_storage.db_schema import Db
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
+import yaml
 
 db = None
 logger = logging.getLogger(__name__)
@@ -26,6 +27,16 @@ async def lifespan(application: FastAPI):
 app = FastAPI(lifespan=lifespan)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
+with open("C:\\Users\\FirstUser\\PycharmProjects\\notescli\\notebookOpenAPI.yaml", "r") as file:
+    custom_openapi_schema = yaml.safe_load(file)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    app.openapi_schema = custom_openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 @app.get("/notes/metadata", status_code=200, tags=["view"])
 def show_metadata():
@@ -63,8 +74,8 @@ def delete(note_id: int, request: Request):
     logger.info("Note was deleted")
 
 
-@app.get("/notes/sreach", status_code=200,tags=["view"])
-def search(title: str, start_date: datetime, end_date: datetime, request: Request):
+@app.get("/notes/search", status_code=200,tags=["Notes"], operation_id="searchNotes")
+def search(request: Request, title: str, start_date: datetime, end_date: datetime):
     database = request.app.state.db
     try:
         requested_note = search_note(start_date, end_date, title, database)
