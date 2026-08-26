@@ -2,8 +2,8 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
-from notecli.database.FileManager import PostgresDb
-from notecli.memory_storage.db_schema import Db
+from notecli.database.DbManager import PostgresDb
+from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    application.state.db = Db()
+    application.state.db = MemoryStorage()
     application.state.db = application.state.db.parse_from_dict(PostgresDb.load_from_db())
 
     yield

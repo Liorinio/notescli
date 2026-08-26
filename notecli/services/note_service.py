@@ -5,7 +5,7 @@ from notecli.app_types.NoteBase import NoteBase
 from notecli.app_types.NoteRegistery import NOTE_INFO
 from notecli.app_types.NoteType import NoteType
 from notecli.app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
-from notecli.memory_storage.db_schema import Db
+from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.metadata import common_metadata_dict, special_fields_dict
 
 logger = logging.getLogger(__name__)
@@ -18,54 +18,54 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
     note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if isinstance(content, expected_type):
-        logger.info(f"A {note_class_name} note was created")
+        logger.info(f"A {note_class_name} note was created, layer: note_service")
         return note_class(title=title, note_type=note_type, content=content, creation_time=datetime.now())
     logger.error(f"Invalid type of content, required a {expected_type}")
     raise TypeError(f"The content must be a {expected_type}")
 
 
-def __add_to_db__(new_note: NoteSimple | NoteList | NoteBookMark, db: Db | None) -> None:
+def __add_to_db__(new_note: NoteSimple | NoteList | NoteBookMark, db: MemoryStorage | None) -> None:
     """
     Adds the note to the memory "db"
     """
     if db is None:
-        logger.error(f"The db doesn't exist")
+        logger.error(f"The db doesn't exist, layer: note_service")
         raise BlockingIOError("None exist db")
     note_id = db.get_counter()
     db.update_counter_by_one()
     new_note.set_id(note_id)
-    logger.info(f"Note number {note_id} is ready to be inserted to the database")
+    logger.info(f"Note number {note_id} is ready to be inserted to the database, layer: note_service")
     db.add_note_to_db(new_note)
 
 
-def __parse_notes__(db: Db | None) -> list[NoteBase]:
+def __parse_notes__(db: MemoryStorage | None) -> list[NoteBase]:
     """
     Gets list of all the notes from the memory db
     """
     if db is None:
-        logger.error("The db doesn't exist")
+        logger.error("The db doesn't exist, layer: note_service")
         return []
     return db.get_db_data()
 
 
-def deleter(note_id: int, db: Db | None) -> NoteBase:
+def deleter(note_id: int, db: MemoryStorage | None) -> NoteBase:
     """
     Deletes a note from the memory db
     """
     if db is not None:
         removed_note = db.remove_note_from_db(note_id)
         if removed_note:
-            logger.info(f"Note number {note_id} was deleted from the database")
+            logger.info(f"Note number {note_id} was deleted from the database, layer: note_service")
             return removed_note
         else:
-            logger.warning("The note doesn't exist")
+            logger.warning("The note doesn't exist, layer: note_service")
             raise ValueError("None exist index in the database")
     else:
-        logger.error("The db doesn't exist")
+        logger.error("The db doesn't exist, layer: note_service")
         raise BlockingIOError("None exist db")
 
 
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: Db | None) -> None:
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: MemoryStorage | None) -> None:
     """
     Creates and adds a note to the memory db
     """
@@ -73,7 +73,7 @@ def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: D
     __add_to_db__(note, db)
 
 
-def get_all(db: Db | None) -> None | str:
+def get_all(db: MemoryStorage | None) -> None | str:
     """
     Returns all the notes, suitable for cli
     """
@@ -86,7 +86,7 @@ def get_all(db: Db | None) -> None | str:
     return "\n".join(output)
 
 
-def retrieve_all_notes(db: Db | None):
+def retrieve_all_notes(db: MemoryStorage | None):
     """
     Returns all the notes, suitable for rest-api
     """
@@ -106,7 +106,7 @@ def show_note_structure() -> str:
     output = ["The common fields between all the notes:"]
     for field in common_metadata_dict:
         description, expected_type = common_metadata_dict[field]
-        output.append(f'Field: {field}, description: {description}, Type: {expected_type}')
+        output.append(f'Field: {field}, description: {description}, Type: {expected_type}, layer: note_service')
     for desc_str in special_fields_dict:
         output.append(desc_str)
 
@@ -137,40 +137,40 @@ def get_note_structure() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
     }
 
 
-def search_note_by_id(note_id: int, db: Db) -> str | None:
+def search_note_by_id(note_id: int, db: MemoryStorage) -> str | None:
     """
     Gets a note's id, and finds the note accordingly
     """
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is not None:
-        logger.info(f"Note number {note_id} was found")
+        logger.info(f"Note number {note_id} was found, layer: note_service")
         return returned_note.to_str()
     return None
 
 
-def update_title_of_note(title: str, note_id: int, db: Db) -> bool:
+def update_title_of_note(title: str, note_id: int, db: MemoryStorage) -> bool:
     """
     Gets content for update and note's id, and updates the note's content
     """
     returned_note = db.get_note_from_db_by_id(note_id)
     if returned_note is None:
-        logger.warning(f"Note number {note_id} wasn't updated")
+        logger.warning(f"Note number {note_id} wasn't updated, layer: note_service")
         return False
     else:
         returned_note.set_title(title)
         returned_note.set_update_date()
-        logger.info(f"Note number {note_id} was updated")
+        logger.info(f"Note number {note_id} was updated, layer: note_service")
         return True
 
 
-def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> bool:
+def update_content_of_note(content: str | list[str], note_id: int, db: MemoryStorage) -> bool:
     """
     Gets content for update and note's id, and updates the note's content
     """
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
-        logger.warning("Note with id %s not found", note_id)
+        logger.warning("Note with id %s not found, layer: note_service", note_id)
         return False
 
     expected_type = (NOTE_INFO[note.note_type])[1]
@@ -178,49 +178,49 @@ def update_content_of_note(content: str | list[str], note_id: int, db: Db) -> bo
     if isinstance(content, expected_type):
         cast(Any, note).set_content(content)
         note.set_update_date()
-        logger.info(f"Note number {note_id} was updated")
+        logger.info(f"Note number {note_id} was updated, layer: note_service")
         return True
 
-    logger.warning("Invalid content type %s for note type %s", type(content).__name__, type(note).__name__)
+    logger.warning("Invalid content type %s for note type %s, layer: note_service", type(content).__name__, type(note).__name__)
     return False
 
 
-def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: Db) -> list[NoteBase] | None:
+def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: MemoryStorage) -> list[NoteBase] | None:
     """
     Gets a range of dates, and finds the note accordingly
     """
     notes = db.get_notes_by_date(early_creation_date, late_creation_date)
     if notes is not None:
-        logger.info(f"the notes were found")
+        logger.info(f"the notes were found, layer: note_service")
         return notes
-    logger.warning(f"the notes were found")
+    logger.warning(f"the notes weren't found, layer: note_service")
     return None
 
 
-def search_note_by_date_and_title(early_creation_date: datetime, late_creation_date: datetime, db: Db, title: str):
+def search_note_by_date_and_title(early_creation_date: datetime, late_creation_date: datetime, db: MemoryStorage, title: str):
     """
     Gets a range of dates and title, and finds the note accordingly
     """
     notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
     if notes is not None:
-        logger.info(f"Notes were found")
+        logger.info(f"Notes were found, layer: note_service")
         return [returned_note.to_str() for returned_note in notes]
-    logger.warning(f"Notes weren't found")
+    logger.warning(f"Notes weren't found, layer: note_service")
     return None
 
 
-def show_content_url(note_id: int, db: Db) -> tuple[int, Any] | None:
+def show_content_url(note_id: int, db: MemoryStorage) -> tuple[int, Any] | None:
     """
     Gets an id of a note, and shows the response content of an http request of its url, if it is a bookMark note
     """
     note = db.get_note_from_db_by_id(note_id)
 
     if note is None:
-        logger.warning(f"Note number {note_id} wasn't found")
+        logger.warning(f"Note number {note_id} wasn't found, layer: note_service")
         return None
 
     if not isinstance(note, NoteBookMark):
-        logger.warning(f"Note number {note_id} is not in the right type")
+        logger.warning(f"Note number {note_id} is not in the right type, layer: note_service")
         return None
 
     return note.open_url()

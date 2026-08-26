@@ -2,15 +2,15 @@ import logging
 from datetime import datetime
 from typing import Optional
 import typer
-from notecli.memory_storage.db_schema import Db
-from notecli.database.FileManager import PostgresDb
+from notecli.memory_storage.db_schema import MemoryStorage
+from notecli.database.DbManager import PostgresDb
 from notecli.services.note_service import show_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title, get_all_notes
 
 app = typer.Typer()
 note_app = typer.Typer()
 app.add_typer(note_app, name="note")
-db: Db | None = None
+db: MemoryStorage | None = None
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 @app.callback()
 def main():
     global db
-    db = Db()
+    db = MemoryStorage()
     db = db.parse_from_dict(PostgresDb.load_from_db())
 
 

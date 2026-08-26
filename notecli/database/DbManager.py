@@ -24,7 +24,7 @@ class DbFileStorage:
         data = {"db_data": note_store.get_db_data(), "counter": note_store.get_counter()}
 
         Path(DbFileStorage.file_path).write_text(json.dumps(data, indent=4, default=lambda obj : obj.name))
-        logger.info(f"The database was saved to a file in the following path: {DbFileStorage.file_path}")
+        logger.info(f"The database was saved to a file in the following path: {DbFileStorage.file_path}, layer: DbManager")
 
     @staticmethod
     def load_from_db() -> NoteStore:
@@ -32,10 +32,10 @@ class DbFileStorage:
 
         if path.exists() and path.stat().st_size != 0:
             data = json.loads(path.read_text(encoding="utf-8"))
-            logger.info(f"The database was read from the following path: {DbFileStorage.file_path}")
+            logger.info(f"The database was read from the following path: {DbFileStorage.file_path}, layer: DbManager")
             return NoteStore(db_data=data["db_data"], counter=data["counter"])
 
-        logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created")
+        logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created, layer: DbManager")
         return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
 
 
@@ -44,7 +44,7 @@ class PostgresDb:
     engine = create_engine(os.environ["DATABASE_URL"])
     SessionLocal = sessionmaker(bind=engine)
 
-    logger.info("connected successfully to the postgres db")
+    logger.info("connected successfully to the postgres db, layer: DbManager")
 
     @staticmethod
     def load_from_db() -> NoteStore:
@@ -63,15 +63,15 @@ class PostgresDb:
                 if not rows:
                     return NoteStore(db_data=[],counter=db_counter)
 
-                logger.info("The data was retrieved from the database")
+                logger.info("The data was retrieved from the database, layer: DbManager")
                 notes: list[NoteBase] = []
 
                 for row in rows:
                     note_class, expected_type, note_class_name = NOTE_INFO[NoteType(row.note_type)]
 
                     if not isinstance(row.content, expected_type):
-                        logger.error(f"Invalid type of content, required a {expected_type}")
-                        raise TypeError(f"The content's type must be of a type: {expected_type}")
+                        logger.error(f"Invalid type of content, required a {expected_type}, layer: DbManager")
+                        raise TypeError(f"The content's type must be of a type: {expected_type}, layer: DbManager")
 
                     logger.info(f"A {note_class_name} note was created")
 
@@ -103,7 +103,7 @@ class PostgresDb:
                     PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
         except Exception as exception:
-            logger.exception("Failed to save notes to PostgreSQL")
+            logger.exception("Failed to save notes to PostgreSQL, layer: DbManager")
             raise exception
 
     @staticmethod
@@ -119,7 +119,7 @@ class PostgresDb:
                                 created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content", getattr(note, "content_site_url", None)))
 
                 session.add(new_note)
-                logger.info(f"Note number: {note.note_id} was added to the postgres db")
+                logger.info(f"Note number: {note.note_id} was added to the postgres db, layer: DbManager")
 
             else:
                 existing_note.title = note.title
@@ -131,7 +131,7 @@ class PostgresDb:
                 elif hasattr(note, "content_site_url"):
                     existing_note.content = note.content_site_url
 
-                logger.info(f"Note number: {note.note_id} was updated in the postgres db")
+                logger.info(f"Note number: {note.note_id} was updated in the postgres db, layer: DbManager")
 
 
     @staticmethod
@@ -139,11 +139,11 @@ class PostgresDb:
         deleted_note = session.get(Note, removed_note_id)
 
         if deleted_note is None:
-            raise ValueError(f"Note {removed_note_id} does not exist in the database")
+            raise ValueError(f"Note {removed_note_id} does not exist in the database, layer: DbManager")
 
         session.delete(deleted_note)
 
-        logger.info("Note number %s was deleted from the postgres db",removed_note_id)
+        logger.info("Note number %s was deleted from the postgres db, layer: DbManager",removed_note_id)
 
     @staticmethod
     def __set_db_counter__(counter: Counter | None, session:Session, memory_db_counter: int) -> None:
@@ -152,7 +152,7 @@ class PostgresDb:
         """
         if counter is None:
             session.add(Counter(id=1, counter=memory_db_counter))
-            logger.info("Counter was added to the postgres db")
+            logger.info("Counter was added to the postgres db, layer: DbManager")
         else:
             counter.counter = memory_db_counter
-            logger.info("Counter was updated in the postgres db")
+            logger.info("Counter was updated in the postgres db, layer: DbManager")

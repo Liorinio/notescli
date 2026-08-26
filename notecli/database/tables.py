@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
 connection = engine.connect()
 
-logger.info("connected successfully to the postgres db")
+logger.info("connected successfully to the postgres db, layer: table creation")
 
 
 class Base(DeclarativeBase):
@@ -37,4 +37,4 @@ class Counter(Base):
     __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
 
 Base.metadata.create_all(engine)
-logger.info("Tables created successfully")
+logger.info("Tables created successfully,layer: table creation")
