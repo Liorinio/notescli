@@ -30,7 +30,7 @@ class SerializedNoteBookMark(SerializedNote):
 
 
 class SerializedNoteList(SerializedNote):
-    tags: list[str]
+    content: list[str]
 
-
+# a type that is used for de-serializing a note from a dictionary to an object
 type union_of_serialized_notes = SerializedNoteSimple | SerializedNoteBookMark | SerializedNoteList

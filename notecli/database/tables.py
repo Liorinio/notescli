@@ -1,6 +1,8 @@
 import logging
+import os
 from datetime import datetime
 from typing import Union
+from dotenv import load_dotenv
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.sql.schema import CheckConstraint
 from sqlalchemy import DateTime, create_engine
@@ -10,7 +12,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 logger = logging.getLogger(__name__)
 
 
-engine = create_engine('postgresql+psycopg://notes_user:FirstUserNotes1!@localhost:5432/notesDb')
+load_dotenv()
+engine = create_engine(os.environ["DATABASE_URL"])
 connection = engine.connect()
 
 logger.info("connected successfully to the postgres db, layer: table creation")
@@ -37,4 +40,4 @@ class Counter(Base):
     __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
 
 Base.metadata.create_all(engine)
-logger.info("Tables created successfully,layer: table creation")
+logger.info("Tables created successfully, layer: table creation")

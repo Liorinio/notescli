@@ -40,16 +40,8 @@ class NoteBase:
             "note_id": self.note_id,
             "title": self.title,
             "note_type": self.note_type.value,
-             "created_at": (
-            self.created_at.isoformat()
-            if hasattr(self.created_at, "isoformat")
-            else self.created_at
-        ),
-        "updated_at": (
-            self.updated_at.isoformat()
-            if hasattr(self.updated_at, "isoformat")
-            else self.updated_at
-        )
+            "created_at": (self.created_at.isoformat()if hasattr(self.created_at, "isoformat")else self.created_at),
+            "updated_at": (self.updated_at.isoformat() if hasattr(self.updated_at, "isoformat") else self.updated_at)
         }
 
     def set_id(self, given_note_id: int):
