@@ -21,7 +21,7 @@ class DbFileStorage:
 
     @staticmethod
     def save_to_db(note_store: NoteStore):
-        data = {"db_data": note_store.get_db_data(), "counter": note_store.get_counter()}
+        data = {"db_data": note_store["db_data"], "counter": note_store["counter"]}
 
         Path(DbFileStorage.file_path).write_text(json.dumps(data, indent=4, default=lambda obj : obj.name))
         logger.info(f"The database was saved to a file in the following path: {DbFileStorage.file_path}, layer: DbManager")
@@ -88,7 +88,7 @@ class PostgresDb:
     @staticmethod
     def save_to_db(note_store: NoteStore,optional_deleted_note_id: int | None = None) -> None:
         try:
-            notes: list[NoteBase] = note_store.get_db_data()
+            notes: list[NoteBase] = note_store["db_data"]
 
             with Session(PostgresDb.engine) as session:
                 with session.begin():
@@ -100,7 +100,7 @@ class PostgresDb:
                     else:
                         PostgresDb.__upsertNote__(notes, session)
 
-                    PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
+                    PostgresDb.__set_db_counter__(counter,session,note_store["counter"].counter)
 
         except Exception as exception:
             logger.exception("Failed to save notes to PostgreSQL, layer: DbManager")
