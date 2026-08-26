@@ -1,9 +1,10 @@
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
-from fastapi import FastAPI, HTTPException, Request
+from datetime import datetime, date
+from fastapi import FastAPI, HTTPException, Request, Query, Path, Body
 from notecli.database.DbManager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
+from notecli.model_place_holder import NoteCreateRequest, NotePlaceHolder, NotePage, BookmarkNoteUpdateRequest, SimpleNoteUpdateRequest, ListNoteUpdateRequest
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
@@ -188,6 +189,128 @@ def list_notes(request: Request):
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Notes listed")
     return {"data": list_of_notes, "message": "Notes are listed"}
+
+"--------------------------------------"
+#Not implemented functions (function that are in the openapi, but I didn't require to implement)
+#The only reason they are here is to have them on the swagger, they don't do anything
+
+
+@app.get("/notes",status_code=200,tags=["Notes"],operation_id="listNotes",summary="List notes (metadata only)",description=(
+        "Returns a paginated list of note metadata — id, type, title, ""createdAt, updatedAt. Content fields (text, list, url) are omitted. ""Equivalent to `nb note list`."))
+def list_notes(type: str | None = Query(None, description="Filter by note type")):
+    raise HTTPException(status_code=501,detail="Not implemented")
+
+@app.post(
+    "/notes",
+    status_code=201,
+    operation_id="createNote",
+    summary="Create a new note",
+    description=(
+        "Creates a new note. The `type` field acts as a discriminator — "
+        "send `simple`, `list`, or `bookmark` and include the matching "
+        "content field (`text`, `list`, or `url`). "
+        "Equivalent to `nb note create simple|list|bookmark`."
+    ),
+    tags=["Notes"],
+    response_model=NotePlaceHolder
+)
+def create_note(note: NoteCreateRequest,request: Request):
+    raise HTTPException(status_code=501,detail="Not implemented")
+
+@app.delete(
+    "/notes",
+    operation_id="deleteNotesByDate",
+    summary="Delete all notes created on a specific date",
+    description="Bulk-deletes every note whose createdAt date matches the given date.",
+    tags=["Notes"]
+)
+def delete_notes_by_date(date: date):
+    raise HTTPException(status_code=501, detail="Not implemented")
+
+
+@app.get(
+    "/notes/search",
+    operation_id="searchNotes",
+    summary="Search notes",
+    description="Full-content search with optional filters.",
+    tags=["Notes"],
+    response_model=NotePage
+)
+def search_notes(
+    title: str | None = Query(None, min_length=1),
+    dateFrom: date | None = None,
+    dateTo: date | None = None,
+    tags: list[str] | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    raise HTTPException(status_code=501, detail="Not implemented")
+
+
+@app.get(
+    "/notes/{id}",
+    operation_id="getNote",
+    summary="Get a specific note",
+    description="Returns the full note including content fields.",
+    tags=["Notes"],
+    response_model=NotePlaceHolder
+)
+def get_note(id: int = Path(..., ge=1)):
+    raise HTTPException(status_code=501, detail="Not implemented")
+
+
+@app.put(
+    "/notes/{id}",
+    operation_id="updateNote",
+    summary="Update a note",
+    tags=["Notes"],
+    response_model=NotePlaceHolder
+)
+def update_note(
+    id: int = Path(..., ge=1),
+    note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)
+):
+    raise HTTPException(
+        status_code=501,
+        detail="Not implemented"
+    )
+
+
+@app.delete(
+    "/notes/{id}",
+    status_code=204,
+    operation_id="deleteNote",
+    summary="Delete a note by ID",
+    description="Equivalent to `nb note delete [id]`.",
+    tags=["Notes"]
+)
+def delete_note(id: int = Path(..., ge=1)):
+    raise HTTPException(status_code=501, detail="Not implemented")
+
+
+@app.patch(
+    "/notes/{id}/tags",
+    operation_id="updateNoteTags",
+    summary="Replace tags on a note",
+    description="Replaces the tag list on the note with the supplied array.",
+    tags=["Notes"],
+    response_model=NotePlaceHolder
+)
+def update_note_tags(id: int = Path(..., ge=1),
+    note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)
+):
+    raise HTTPException(status_code=501, detail="Not implemented")
+
+
+@app.get(
+    "/notes/{id}/navigate",
+    operation_id="navigateNote",
+    summary="Fetch the content of a bookmark URL",
+    description="Returns the content of the URL stored in a bookmark note.",
+    tags=["Notes"]
+)
+def navigate_note(id: int = Path(..., ge=1)):
+    raise HTTPException(status_code=501, detail="Not implemented")
 
 
 if __name__ == "__main__":
