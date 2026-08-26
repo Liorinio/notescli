@@ -65,7 +65,7 @@ class Db:
     def remove_note_from_db(self, note_id: int) -> NoteBase | None:
         if self.db_data:
             for i in range(len(self.db_data)):
-                if i == note_id:
+                if self.db_data[i].note_id == note_id:
                     logger.info(f"Note number {note_id} was found")
                     return self.db_data.pop(note_id)
 

@@ -27,14 +27,32 @@ async def lifespan(application: FastAPI):
 app = FastAPI(lifespan=lifespan)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-with open("C:\\Users\\FirstUser\\PycharmProjects\\notescli\\notebookOpenAPI.yaml", "r") as file:
+
+with open("C:\\Users\\FirstUser\\PycharmProjects\\notescli\\notebookOpenAPI.yaml","r") as file:
     custom_openapi_schema = yaml.safe_load(file)
+
+original_openapi = app.openapi
 
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    app.openapi_schema = custom_openapi_schema
+
+    generated_schema = original_openapi()
+
+    # Keep your custom OpenAPI information
+    generated_schema["info"] = custom_openapi_schema.get(
+        "info",
+        generated_schema["info"]
+    )
+
+    # Add/override paths from your YAML
+    generated_schema["paths"].update(
+        custom_openapi_schema.get("paths", {})
+    )
+
+    app.openapi_schema = generated_schema
     return app.openapi_schema
+
 
 app.openapi = custom_openapi
 
@@ -45,7 +63,7 @@ def show_metadata():
     return {"metadata": output ,"message": "Metadata showed"}
 
 
-@app.post("/notes", status_code=201, tags=["add and remove"])
+@app.post("/notes/add and remove", status_code=201, tags=["add and remove"])
 def add(given_note_type: str, title: str, content: list[str], request: Request):
     database = request.app.state.db
     try:

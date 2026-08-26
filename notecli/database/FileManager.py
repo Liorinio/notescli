@@ -94,10 +94,11 @@ class PostgresDb:
                 with session.begin():
                     counter = session.get(Counter, 1)
 
-                    PostgresDb.__upsertNote__(notes, session)
 
                     if optional_deleted_note_id is not None:
                         PostgresDb.delete_note_for_postgres(optional_deleted_note_id,session)
+                    else:
+                        PostgresDb.__upsertNote__(notes, session)
 
                     PostgresDb.__set_db_counter__(counter,session,note_store.get_counter())
 
