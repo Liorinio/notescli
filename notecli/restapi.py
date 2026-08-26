@@ -39,17 +39,8 @@ def custom_openapi():
         return app.openapi_schema
 
     generated_schema = original_openapi()
-
-    # Keep your custom OpenAPI information
-    generated_schema["info"] = custom_openapi_schema.get(
-        "info",
-        generated_schema["info"]
-    )
-
-    # Add/override paths from your YAML
-    generated_schema["paths"].update(
-        custom_openapi_schema.get("paths", {})
-    )
+    generated_schema["info"] = custom_openapi_schema.get("info",generated_schema["info"])
+    generated_schema["paths"].update(custom_openapi_schema.get("paths", {}))
 
     app.openapi_schema = generated_schema
     return app.openapi_schema
@@ -180,7 +171,7 @@ def view(note_id: int, request: Request):
     return {"note": requested_note, "message": "Note's viewed successfully"}
 
 
-@app.get("/notes", status_code=200, tags=["view"])
+@app.get("/view/notes", status_code=200, tags=["view"])
 def list_notes(request: Request):
     database = request.app.state.db
     try:
