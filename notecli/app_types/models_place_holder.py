@@ -1,12 +1,11 @@
 from notecli.app_types.NoteType import NoteType
 from datetime import datetime
 from typing import Literal, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-#classes for creating the "NOT IMPLEMENTED" functions
-#This is their only use
-#The use of pydantic here is for the validation of the fields
+# Classes for creating the "NOT IMPLEMENTED" functions
+# This is their only use
+# The use of pydantic here is for the validation of the fields
 
 class NoteCreateRequest(BaseModel):
     type: str
@@ -49,4 +48,4 @@ class BookmarkNoteUpdateRequest(BaseModel):
     title: str | None = None
     url: str | None = None
 
-NoteUpdateRequest =SimpleNoteUpdateRequest | ListNoteUpdateRequest | BookmarkNoteUpdateRequest
+NoteUpdateRequest = SimpleNoteUpdateRequest | ListNoteUpdateRequest | BookmarkNoteUpdateRequest

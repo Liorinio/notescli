@@ -4,7 +4,7 @@ from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, Request, Query, Path, Body
 from notecli.database.DbManager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
-from notecli.model_place_holder import NoteCreateRequest, NotePlaceHolder, NotePage, BookmarkNoteUpdateRequest, SimpleNoteUpdateRequest, ListNoteUpdateRequest
+from notecli.app_types.models_place_holder import NoteCreateRequest, NotePlaceHolder, NotePage, BookmarkNoteUpdateRequest, SimpleNoteUpdateRequest, ListNoteUpdateRequest
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
 import uvicorn
@@ -257,14 +257,8 @@ def get_note(id: int = Path(..., ge=1)):
     tags=["Notes"],
     response_model=NotePlaceHolder
 )
-def update_note(
-    id: int = Path(..., ge=1),
-    note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)
-):
-    raise HTTPException(
-        status_code=501,
-        detail="Not implemented"
-    )
+def update_note(id: int = Path(..., ge=1),note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)):
+    raise HTTPException(status_code=501,detail="Not implemented")
 
 
 @app.delete(
@@ -287,9 +281,7 @@ def delete_note(id: int = Path(..., ge=1)):
     tags=["Notes"],
     response_model=NotePlaceHolder
 )
-def update_note_tags(id: int = Path(..., ge=1),
-    note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)
-):
+def update_note_tags(id: int = Path(..., ge=1),note: (SimpleNoteUpdateRequest| ListNoteUpdateRequest| BookmarkNoteUpdateRequest) = Body(...)):
     raise HTTPException(status_code=501, detail="Not implemented")
 
 
