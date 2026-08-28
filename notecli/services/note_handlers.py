@@ -7,13 +7,16 @@ from notecli.services.note_service import adder, search_note_by_date_and_title, 
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
 
 
-def add_note(given_note_type: str, title: str, content: list[str], db: MemoryStorage | None):
+def add_note(given_note_type: str, title: str, content: list[str] | None, db: MemoryStorage | None):
     """
     Adds a note to db
     """
     if db is None:
         return
     note_type = NoteType[given_note_type.upper()]
+
+    if content is None:
+        return
 
     if note_type not in (NoteType.SIMPLE, NoteType.BOOKMARK):
         content_to_add: list[str] = content

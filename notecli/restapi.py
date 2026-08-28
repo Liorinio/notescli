@@ -1,12 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, date
-from fastapi import FastAPI, HTTPException, Request, Query, Path, Body
+from datetime import datetime
+from fastapi import FastAPI, HTTPException, Request
+from notecli.app_types.NoteType import NoteType
 from notecli.database.DbManager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
-from notecli.app_types.models_place_holder import NoteCreateRequest, NotePlaceHolder, NotePage, BookmarkNoteUpdateRequest, SimpleNoteUpdateRequest, ListNoteUpdateRequest
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
-from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title
+from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
 import uvicorn
 import yaml
 
@@ -29,7 +29,7 @@ app = FastAPI(lifespan=lifespan)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
-with open("C:\\Users\\FirstUser\\PycharmProjects\\notescli\\notebookOpenAPI.yaml","r") as file:
+with open("C:\\Users\\ASUS\\PycharmProjects\\notes\\notebookOpenAPI.yaml","r") as file:
     custom_openapi_schema = yaml.safe_load(file)
 
 original_openapi = app.openapi
@@ -48,30 +48,172 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-@app.get("/notes/metadata", status_code=200, tags=["view"])
+from pydantic import BaseModel, HttpUrl, field_validator
+from typing import List, Optional
+
+
+# ─── Pydantic Models for JSON Request Bodies ──────────────────────────────
+class NoteCreate(BaseModel):
+    type: NoteType
+    title: str
+    text: Optional[str] = None
+    list: Optional[List[str]] = None
+    url: Optional[HttpUrl] = None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "type": 1,
+                    "title": "My First Note",
+                    "text": "Hello world!"
+                }
+            ]
+        }
+    }
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def parse_string_to_enum(cls, value):
+        if isinstance(value, str):
+            mapping = {"simple": 1, "listnote": 2, "bookmark": 3}
+            val_lower = value.lower()
+            if val_lower in mapping:
+                return mapping[val_lower]
+            raise ValueError("Type must be 'simple', 'listnote', or 'bookmark'")
+        return value
+
+
+class NoteUpdate(BaseModel):
+    type: NoteType
+    title: Optional[str] = None
+    text: Optional[str] = None
+    list: Optional[List[str]] = None
+    url: Optional[HttpUrl] = None
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "title": "My First Note",
+                    "text": "Hello world!",
+                    "list": ["hello", "world!"],
+                    "url": "https://fastapi.tiangolo.com"
+                }
+            ]
+        }
+    }
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def parse_string_to_enum(cls, value):
+        if isinstance(value, str):
+            mapping = {"simple": 1, "listnote": 2, "bookmark": 3}
+            val_lower = value.lower()
+            if val_lower in mapping:
+                return mapping[val_lower]
+            raise ValueError("Type must be 'simple', 'listnote', or 'bookmark'")
+        return value
+
+
+# ─── Endpoints ────────────────────────────────────────────────────────────
+
+@app.get("/notes/metadata", status_code=200, tags=["Notes"])
 def show_metadata():
     output = get_note_structure()
     logger.info("metadata showed")
-    return {"metadata": output ,"message": "Metadata showed"}
+    return {"metadata": output, "message": "Metadata showed"}
 
-
-@app.post("/notes/add and remove", status_code=201, tags=["add and remove"])
-def add(given_note_type: str, title: str, content: list[str], request: Request):
+@app.get("/notes", status_code=200, tags=["Notes"])
+def list_notes(request: Request):
+    """List notes (metadata only)"""
     database = request.app.state.db
     try:
-        add_note(given_note_type, title, content, database)
+        list_of_notes = retrieve_all_notes(database)
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    logger.info("Notes listed")
+    return {"data": list_of_notes, "message": "Notes are listed"}
+
+
+
+@app.post("/notes", status_code=201, tags=["Notes"])
+def add(note: NoteCreate, request: Request):
+    """Create a new note using a JSON Request Body"""
+    database = request.app.state.db
+    content: list[str] | None = None
+
+    if note.text is not None:
+        content = [note.text]
+    elif note.list is not None:
+        content = note.list
+    elif note.url is not None:
+        content = [str(note.url)]
+
+    try:
+        add_note(note.type.name, note.title, content, database)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
         raise HTTPException(status_code=400, detail=f'Invalid Key {error}')
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
+
     logger.info("Note was added")
     return {"message": "Note created successfully"}
 
 
-@app.delete("/notes/{note_id}", status_code=204, tags=["add and remove/note id usage"])
+@app.get("/notes/search", status_code=200, tags=["Notes"], operation_id="searchNotes")
+def search(request: Request,title: str,start_date: datetime,end_date: datetime):
+    """Search notes with optional query parameters"""
+    database = request.app.state.db
+    try:
+        requested_note = search_note(start_date, end_date, title, database)
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    logger.info("Note was found")
+    return {"note": requested_note, "message": "Notes were found successfully"}
+
+@app.get("/notes/{note_id}", status_code=200, tags=["Notes"])
+def view(note_id: int, request: Request):
+    """Get a specific note"""
+    database = request.app.state.db
+    try:
+        requested_note = view_specific_note(note_id, database)
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    logger.info("Note viewed")
+    return {"note": requested_note, "message": "Note viewed successfully"}
+
+
+@app.put("/notes/{note_id}", status_code=200, tags=["Notes"])
+def update(note_id: int, note_update: NoteUpdate, request: Request):
+    """Update a note using a JSON Request Body"""
+    database = request.app.state.db
+    content: list[str] | str | None = None
+
+    if note_update.text is not None:
+        content = note_update.text
+    elif note_update.list is not None:
+        content = note_update.list
+    elif note_update.url is not None:
+        content = str(note_update.url)
+
+    try:
+        res = update_note(note_id, database, note_update.title, content)
+        if not res:
+            raise HTTPException(status_code=400, detail="Failed to update note")
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+    logger.info("Note was updated")
+    return {"message": "Note updated successfully"}
+
+@app.delete("/notes/{note_id}", status_code=204, tags=["Notes"])
 def delete(note_id: int, request: Request):
+    """Delete a note by ID"""
     database = request.app.state.db
     try:
         delete_note(note_id, database)
@@ -83,72 +225,9 @@ def delete(note_id: int, request: Request):
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Note was deleted")
 
-
-@app.get("/notes/search", status_code=200,tags=["Notes"], operation_id="searchNotes")
-def search(request: Request, title: str, start_date: datetime, end_date: datetime):
-    database = request.app.state.db
-    try:
-        requested_note = search_note(start_date, end_date, title, database)
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note was found")
-    return {"note": requested_note, "message": f"Notes were found successfully"}
-
-
-@app.put("/notes/{note_id}", status_code=200,  tags=["note id usage/update"])
-def update(note_id: int,request: Request, title: str | None = None, content: str | list[str] | None = None):
-    database = request.app.state.db
-
-    try:
-        res = update_note(note_id, database, title, content)
-        if not res:
-            raise HTTPException(status_code=400)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note was updated")
-    return {"message": "Note updated successfully"}
-
-
-@app.put("/notes/{note_id}/title", status_code=200, tags=["note id usage/update"])
-def update_note_title(note_id: int, request: Request, title: str | None = None):
-    database = request.app.state.db
-    try:
-        if isinstance(title, str):
-            res = update_title(title, note_id, database)
-            if not res:
-                raise HTTPException(status_code=400)
-        else:
-            raise HTTPException(status_code=400)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note's title was updated")
-    return {"message": "Note's title updated successfully"}
-
-
-@app.put("/notes/{id}/content", status_code=200, tags=["note id usage/update"])
-def update_note_content(note_id: int, request: Request,  content: str | list[str] | None = None):
-    database = request.app.state.db
-    try:
-        if isinstance(content, str) or isinstance(content, list):
-            res = update_content(content, note_id, database)
-            if not res:
-                raise HTTPException(status_code=400)
-        else:
-            raise HTTPException(status_code=400)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note's content was updated")
-    return {"message": "Note's content updated successfully"}
-
-
-@app.get("/notes/{note_id}/navigate", status_code=200, tags=["note id usage"])
+@app.get("/notes/{note_id}/navigate", status_code=200, tags=["Notes"])
 def navigate(note_id: int, request: Request):
+    """Fetch the content of a bookmark URL"""
     database = request.app.state.db
     try:
         output = navigate_url(note_id, database)
@@ -157,34 +236,13 @@ def navigate(note_id: int, request: Request):
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Note's content was shown")
-    return {"output": output,"message": "Note's url navigated successfully"}
+    return {"output": output, "message": "Note's url navigated successfully"}
 
-
-@app.get("/notes/{note_id}", status_code=200, tags=["view/note id usage"])
-def view(note_id: int, request: Request):
-    database = request.app.state.db
-    try:
-        requested_note = view_specific_note(note_id, database)
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note viewed")
-    return {"note": requested_note, "message": "Note's viewed successfully"}
-
-
-@app.get("/view/notes", status_code=200, tags=["view"])
-def list_notes(request: Request):
-    database = request.app.state.db
-    try:
-        list_of_notes = retrieve_all_notes(database)
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Notes listed")
-    return {"data": list_of_notes, "message": "Notes are listed"}
 
 "--------------------------------------"
 #Not implemented functions (function that are in the openapi, but I didn't require to implement)
 #The only reason they are here is to have them on the swagger, they don't do anything
-
+'''
 
 @app.get("/notes",status_code=200,tags=["Notes"],operation_id="listNotes",summary="List notes (metadata only)",description=(
         "Returns a paginated list of note metadata — id, type, title, ""createdAt, updatedAt. Content fields (text, list, url) are omitted. ""Equivalent to `nb note list`."))
@@ -294,7 +352,7 @@ def update_note_tags(id: int = Path(..., ge=1),note: (SimpleNoteUpdateRequest| L
 )
 def navigate_note(id: int = Path(..., ge=1)):
     raise HTTPException(status_code=501, detail="Not implemented")
-
+'''
 
 if __name__ == "__main__":
     uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=True)
