@@ -7,4 +7,3 @@ sqlalchemy
 uvicorn
 python-dotenv
 pyyaml
-pyyaml
