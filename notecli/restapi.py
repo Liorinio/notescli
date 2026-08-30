@@ -8,6 +8,7 @@ from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
 from notecli.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker
+from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 
 db = None
 logger = logging.getLogger(__name__)
@@ -53,21 +54,22 @@ def list_notes(request: Request):
 
 
 @app.post("/notes", status_code=201, tags=["Notes"])
-def add(note: NoteCreate, request: Request):
-    """Creates a new note, using a JSON Request Body"""
+def add(request: Request,note: NoteCreate):
     database = request.app.state.db
-    content: list[str] | None = create_request_content_checker(note)
+
+    content = create_request_content_checker(note)
 
     try:
-        add_note(note.type.name, note.title, content, database)
+        add_note(note.type.name,note.title,content,database)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
-        raise HTTPException(status_code=400, detail=f'Invalid Key {error}')
+        raise HTTPException(status_code=400,detail=f"Invalid Key {error}")
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
     logger.info("Note was added")
+
     return {"message": "Note created successfully"}
 
 

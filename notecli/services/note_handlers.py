@@ -7,7 +7,7 @@ from notecli.services.note_service import adder, search_note_by_date_and_title, 
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
 
 
-def add_note(given_note_type: str, title: str, content: list[str] | None, db: MemoryStorage | None):
+def add_note(given_note_type: str, title: str, content: list[str] | str|  None, db: MemoryStorage | None):
     """
     Adds a note to db
     """
@@ -21,9 +21,9 @@ def add_note(given_note_type: str, title: str, content: list[str] | None, db: Me
     if note_type not in (NoteType.SIMPLE, NoteType.BOOKMARK):
         content_to_add: list[str] = content
     else:
-        if len(content) != 1:
+        if type(content) is not str:
             raise ValueError(f"{note_type.name} notes require exactly one content value")
-        content_to_add: str = content[0]
+        content_to_add: str = content
 
     adder(note_type, title, content_to_add, db)
     PostgresDb.save_to_db(db.parse_to_dict())
