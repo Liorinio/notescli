@@ -192,14 +192,18 @@ components:
           $ref: '#/components/schemas/NoteType'
         title:
           type: string
+          description: The title of a note
         text:
           type: string
+          description: The content of a note, unique to NoteSimple
         list:
           type: array
+          description: The content of a note, unique to NoteList
           items:
             type: string
         url:
           type: string
+          description: The content of a note, unique to NoteBookMark
           format: uri
 
     NoteUpdateRequest:
@@ -210,12 +214,16 @@ components:
           $ref: '#/components/schemas/NoteType'
         title:
           type: string
+          description: The title of a note
         text:
           type: string
+          description: The content of a note, unique to NoteSimple
         list:
           type: array
+          description: The content of a note, unique to NoteList
           items:
             type: string
         url:
           type: string
+          description: The content of a note, unique to NoteBookMark
           format: uri
