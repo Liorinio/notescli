@@ -31,7 +31,7 @@ class NoteSimple(NoteBase):
 
         return self
 
-    def set_content(self, content: str):
+    def set_content(self, content: str) -> None:
         self.content = content
 
 class NoteList(NoteBase):
@@ -58,7 +58,7 @@ class NoteList(NoteBase):
 
         return self
 
-    def set_content(self, content: list[str]):
+    def set_content(self, content: list[str]) -> None:
         self.content = content
 
 
@@ -86,7 +86,7 @@ class NoteBookMark(NoteBase):
 
         return self
 
-    def set_content(self, content: str):
+    def set_content(self, content: str) -> None:
         self.content_site_url = content
 
     def open_url(self) -> tuple[int, Any] | None:

@@ -26,8 +26,8 @@ class NoteCreate(BaseModel):
     @classmethod
     def parse_string_to_enum(cls, value):
         if isinstance(value, str):
-            mapping = {"simple": 1, "listnote": 2, "bookmark": 3}
-            val_lower = value.lower()
+            mapping: dict[str, int] = {"simple": 1, "listnote": 2, "bookmark": 3}
+            val_lower: str = value.lower()
             if val_lower in mapping:
                 return mapping[val_lower]
             raise ValueError("Type must be 'simple', 'listnote', or 'bookmark'")
@@ -58,8 +58,8 @@ class NoteUpdate(BaseModel):
     @classmethod
     def parse_string_to_enum(cls, value):
         if isinstance(value, str):
-            mapping = {"simple": 1, "listnote": 2, "bookmark": 3}
-            val_lower = value.lower()
+            mapping: dict[str, int] = {"simple": 1, "listnote": 2, "bookmark": 3}
+            val_lower: str = value.lower()
             if val_lower in mapping:
                 return mapping[val_lower]
             raise ValueError("Type must be 'simple', 'listnote', or 'bookmark'")
