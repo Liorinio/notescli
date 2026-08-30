@@ -6,6 +6,4 @@ common_metadata_dict = {
     "updated_at" : ("The date which the note was updated", "needs be of datetime type")
 }
 
-special_fields_dict = [
-    "The content of a SIMPLE note is a single string", "The content of a NOTELIST note is a list of string", "The content of a BOOKMARK note is a single string"
-]
+special_fields_dict = ["The content of a SIMPLE note is a single string", "The content of a NOTELIST note is a list of string", "The content of a BOOKMARK note is a single string"]

@@ -89,9 +89,11 @@ class NoteBookMark(NoteBase):
     def set_content(self, content: str):
         self.content_site_url = content
 
-    # Checks if the content is actual url
-    # If so, returns a pair of status code and response body of the response, else return none
     def open_url(self) -> tuple[int, Any] | None:
+        """
+        Checks if the content is an actual url
+        If so, returns a pair of status code and response body of the response, else return none
+        """
         if self.content_site_url.startswith(("http://", "https://")):
             response = requests.get(self.content_site_url)
 
