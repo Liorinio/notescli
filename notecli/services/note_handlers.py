@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
-from notecli.app_types.NoteType import NoteType
-from notecli.database.DbManager import PostgresDb
+from notecli.app_types.note_type import NoteType
+from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import adder, search_note_by_date_and_title, search_note_by_id, \
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter

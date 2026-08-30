@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 import typer
 from notecli.memory_storage.db_schema import MemoryStorage
-from notecli.database.DbManager import PostgresDb
+from notecli.database.database_manager import PostgresDb
 from notecli.services.note_service import show_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, update_content, update_title, get_all_notes
 

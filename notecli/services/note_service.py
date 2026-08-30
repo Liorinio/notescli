@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Union, Any, cast
 import logging
-from notecli.app_types.NoteBase import NoteBase
-from notecli.app_types.NoteRegistery import NOTE_INFO
-from notecli.app_types.NoteType import NoteType
-from notecli.app_types.NoteModels import NoteSimple, NoteList, NoteBookMark
+from notecli.app_types.note_base import NoteBase
+from notecli.app_types.note_registery import NOTE_INFO
+from notecli.app_types.note_type import NoteType
+from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.metadata import common_metadata_dict, special_fields_dict
 

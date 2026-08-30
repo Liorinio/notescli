@@ -4,12 +4,12 @@ from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker
-from notecli.app_types.NoteRegistery import NOTE_INFO
-from notecli.app_types.NoteType import NoteType
+from notecli.app_types.note_registery import NOTE_INFO
+from notecli.app_types.note_type import NoteType
 from notecli.memory_storage.note_store import NoteStore
 from notecli.database.tables import Note, Counter
 from sqlalchemy.orm import Session
-from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.note_base import NoteBase
 from dotenv import load_dotenv
 import os
 

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Self
 from notecli.memory_storage.note_store import NoteStore
-from notecli.app_types.NoteBase import NoteBase
+from notecli.app_types.note_base import NoteBase
 from notecli.database.tables import Counter
 
 logger = logging.getLogger(__name__)

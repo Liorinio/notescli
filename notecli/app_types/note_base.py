@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Self
-from notecli.app_types.NoteType import NoteType, serializedDict, union_of_serialized_notes
+from notecli.app_types.note_type import NoteType, serializedDict, union_of_serialized_notes
 
 
 class NoteBase:

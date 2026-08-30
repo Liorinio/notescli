@@ -1,6 +1,6 @@
 from pydantic import BaseModel, HttpUrl, field_validator
 from typing import List, Optional
-from notecli.app_types.NoteType import NoteType
+from notecli.app_types.note_type import NoteType
 
 # Pydantic Models for JSON Request Bodies
 class NoteCreate(BaseModel):
