@@ -16,6 +16,10 @@ paths:
     get:
       operationId: listNotes
       summary: List notes
+      description: >
+        Returns a paginated list of note metadata — id, type, title, createdAt,
+        updatedAt. Content fields (text, list, url) are omitted.
+        Equivalent to `nb note list`.
       tags: [ Notes ]
       responses:
         '200':
@@ -24,6 +28,9 @@ paths:
     post:
       operationId: createNote
       summary: Create a new note
+      description: >
+        Creates a new note.
+        Equivalent to `nb note create simple|list|bookmark`.
       tags: [ Notes ]
       requestBody:
         required: true
@@ -79,7 +86,7 @@ paths:
     get:
       operationId: searchNotes
       summary: Search notes
-      tags: [Notes]
+      tags: [ Notes ]
       parameters:
         - name: title
           in: query
@@ -109,7 +116,7 @@ paths:
     get:
       operationId: getNote
       summary: Get a specific note
-      tags: [Notes]
+      tags: [ Notes ]
       responses:
         '200':
           description: The requested note
@@ -150,7 +157,7 @@ paths:
     delete:
       operationId: deleteNote
       summary: Delete a note by ID
-      tags: [Notes]
+      tags: [ Notes ]
       responses:
         '204':
           description: Note deleted
@@ -162,7 +169,7 @@ paths:
     get:
       operationId: navigateNote
       summary: Fetch the content of a bookmark URL
-      tags: [Notes]
+      tags: [ Notes ]
       responses:
         '200':
           description: Raw content of the bookmarked URL
@@ -181,49 +188,111 @@ components:
   schemas:
     NoteType:
       type: string
-      enum: [ simple, listnote, bookmark ]
+      enum:
+        - simple
+        - listnote
+        - bookmark
       description: The type of note to create or update
 
     NoteCreateRequest:
       type: object
-      required: [ type, title ]
+      required:
+        - type
+        - title
       properties:
         type:
           $ref: '#/components/schemas/NoteType'
+
         title:
           type: string
           description: The title of a note
+          minLength: 1
+          maxLength: 255
+
         text:
           type: string
-          description: The content of a note, unique to NoteSimple
+          description: The content of a simple note
+          minLength: 1
+
         list:
           type: array
-          description: The content of a note, unique to NoteList
+          description: The content of a list note
+          minItems: 1
           items:
             type: string
+            minLength: 1
+
         url:
           type: string
-          description: The content of a note, unique to NoteBookMark
+          description: The content of a bookmark note
           format: uri
 
     NoteUpdateRequest:
       type: object
-      required: [ type ]
+      required:
+        - type
       properties:
         type:
           $ref: '#/components/schemas/NoteType'
+
         title:
           type: string
           description: The title of a note
+          minLength: 1
+          maxLength: 255
+
         text:
           type: string
-          description: The content of a note, unique to NoteSimple
+          description: The content of a simple note
+          minLength: 1
+
         list:
           type: array
-          description: The content of a note, unique to NoteList
+          description: The content of a list note
+          minItems: 1
           items:
             type: string
+            minLength: 1
+
         url:
           type: string
-          description: The content of a note, unique to NoteBookMark
+          description: The content of a bookmark note
           format: uri
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          example: 404
+
+        message:
+          type: string
+          example: "Note not found"
+
+  responses:
+    NotFound:
+      description: The requested note does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            message: "Note not found"
+
+    BadRequest:
+      description: Request payload failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            message: "Validation error"
+            details:
+              - "title: must not be blank"
+              - "url: must be a valid URI"
