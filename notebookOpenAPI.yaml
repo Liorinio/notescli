@@ -110,12 +110,6 @@ paths:
       operationId: getNote
       summary: Get a specific note
       tags: [Notes]
-      parameters:
-        - name: note_id
-          in: path
-          required: true
-          schema:
-            type: integer
       responses:
         '200':
           description: The requested note
@@ -124,12 +118,6 @@ paths:
       operationId: updateNote
       summary: Update a note
       tags: [ Notes ]
-      parameters:
-        - name: note_id
-          in: path
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -163,12 +151,6 @@ paths:
       operationId: deleteNote
       summary: Delete a note by ID
       tags: [Notes]
-      parameters:
-        - name: note_id
-          in: path
-          required: true
-          schema:
-            type: integer
       responses:
         '204':
           description: Note deleted
@@ -181,12 +163,6 @@ paths:
       operationId: navigateNote
       summary: Fetch the content of a bookmark URL
       tags: [Notes]
-      parameters:
-        - name: note_id
-          in: path
-          required: true
-          schema:
-            type: integer
       responses:
         '200':
           description: Raw content of the bookmarked URL
@@ -225,10 +201,6 @@ components:
         url:
           type: string
           format: uri
-        tags:
-          type: array
-          items:
-            type: string
 
     NoteUpdateRequest:
       type: object

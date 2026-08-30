@@ -1,4 +1,5 @@
 import logging
+import uvicorn
 from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
@@ -6,10 +7,7 @@ from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
-import uvicorn
-import yaml
-import os
-from dotenv import load_dotenv
+from notecli.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker
 
 db = None
 logger = logging.getLogger(__name__)
@@ -28,16 +26,9 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.openapi = replace_openapi
+app.middleware("http")(restapi_middleware)
 
-load_dotenv()
-
-with open(os.environ["OPENAPI_FILE_PATH"],"r", encoding="utf-8") as file:
-    custom_openapi_schema = yaml.safe_load(file)
-
-def custom_openapi():
-    return custom_openapi_schema
-
-app.openapi = custom_openapi
 
 @app.get("/notes/metadata", status_code=200, tags=["Notes"])
 def show_metadata():
@@ -51,10 +42,13 @@ def list_notes(request: Request):
     database = request.app.state.db
     try:
         list_of_notes = retrieve_all_notes(database)
+        if list_of_notes:
+            logger.info("Notes listed")
+            return {"data": list_of_notes, "message": "Notes are listed"}
+        else:
+            return {"message": "There are not notes due to none existed database"}
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Notes listed")
-    return {"data": list_of_notes, "message": "Notes are listed"}
 
 
 
@@ -62,14 +56,7 @@ def list_notes(request: Request):
 def add(note: NoteCreate, request: Request):
     """Creates a new note, using a JSON Request Body"""
     database = request.app.state.db
-    content: list[str] | None = None
-
-    if note.text is not None:
-        content = [note.text]
-    elif note.list is not None:
-        content = note.list
-    elif note.url is not None:
-        content = [str(note.url)]
+    content: list[str] | None = create_request_content_checker(note)
 
     try:
         add_note(note.type.name, note.title, content, database)
@@ -101,36 +88,36 @@ def view(note_id: int, request: Request):
     database = request.app.state.db
     try:
         requested_note = view_specific_note(note_id, database)
+        if requested_note is None:
+            return {"message": "Note doesn't exist"}
+        else:
+            logger.info("Note viewed")
+            return {"note": requested_note, "message": "Note viewed successfully"}
+
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note viewed")
-    return {"note": requested_note, "message": "Note viewed successfully"}
+
+
 
 
 @app.put("/notes/{note_id}", status_code=200, tags=["Notes"])
 def update(note_id: int, note_update: NoteUpdate, request: Request):
     """Updates a note, using a JSON Request Body"""
     database = request.app.state.db
-    content: list[str] | str | None = None
-
-    if note_update.text is not None:
-        content = note_update.text
-    elif note_update.list is not None:
-        content = note_update.list
-    elif note_update.url is not None:
-        content = str(note_update.url)
+    content: list[str] | str | None = update_request_content_checker(note_update)
 
     try:
-        res = update_note(note_id, database, note_update.title, content)
-        if not res:
+        is_updated = update_note(note_id, database, note_update.title, content)
+        if is_updated:
+            logger.info("Note was updated")
+            return {"message": "Note updated successfully"}
+        else:
             raise HTTPException(status_code=400, detail="Failed to update note")
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
-    logger.info("Note was updated")
-    return {"message": "Note updated successfully"}
 
 @app.delete("/notes/{note_id}", status_code=204, tags=["Notes"])
 def delete(note_id: int, request: Request):
@@ -152,12 +139,17 @@ def navigate(note_id: int, request: Request):
     database = request.app.state.db
     try:
         output = navigate_url(note_id, database)
+
+        if output is None:
+            return {"message": "Note doesn't exist"}
+        else:
+            logger.info("Note's content was shown")
+            return {"output": output, "message": "Note's url navigated successfully"}
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note's content was shown")
-    return {"output": output, "message": "Note's url navigated successfully"}
+
 
 if __name__ == "__main__":
     uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=True)
