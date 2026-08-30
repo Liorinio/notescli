@@ -4,6 +4,7 @@ from typing import Self
 from notecli.memory_storage.note_store import NoteStore
 from notecli.app_types.note_base import NoteBase
 from notecli.database.tables import Counter
+from notecli.exeptions import NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -54,23 +55,23 @@ class MemoryStorage:
 
         return self
 
-    def get_note_from_db_by_id(self, note_id: int) -> NoteBase | None:
+    def get_note_from_db_by_id(self, note_id: int) -> NoteBase:
         for note in self.db_data:
             if note.note_id == note_id:
                 return note
 
-        logger.warning("There is no such id in the database, layer: memory_storage")
-        return None
+        logger.error("There is no such id in the database, layer: memory_storage")
+        raise NotFoundError("Index not found")
 
-    def remove_note_from_db(self, note_id: int) -> NoteBase | None:
+    def remove_note_from_db(self, note_id: int) -> NoteBase :
         if self.db_data:
             for i in range(len(self.db_data)):
                 if self.db_data[i].note_id == note_id:
                     logger.info(f"Note number {note_id} was found, layer: memory_storage")
                     return self.db_data.pop(note_id)
 
-            logger.warning("There is no such id in the database, layer: memory_storage")
-            return None
+            logger.error("There is no such id in the database, layer: memory_storage")
+            raise NotFoundError("Index not found")
         else:
             logging.error("The database is empty, layer: memory_storage")
             raise ValueError("Database is empty or no records found, layer: memory_storage")

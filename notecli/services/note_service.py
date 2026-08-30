@@ -7,6 +7,7 @@ from notecli.app_types.note_type import NoteType
 from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.metadata import common_metadata_dict, special_fields_dict
+from notecli.exeptions import NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ def deleter(note_id: int, db: MemoryStorage | None) -> NoteBase:
             return removed_note
         else:
             logger.warning("The note doesn't exist, layer: note_service")
-            raise ValueError("None exist index in the database")
+            raise NotFoundError("Index not found")
     else:
         logger.error("The db doesn't exist, layer: note_service")
         raise BlockingIOError("None exist db")
@@ -141,48 +142,49 @@ def search_note_by_id(note_id: int, db: MemoryStorage) -> str | None:
     """
     Gets a note's id, and finds the note accordingly
     """
-    returned_note = db.get_note_from_db_by_id(note_id)
-    if returned_note is not None:
-        logger.info(f"Note number {note_id} was found, layer: note_service")
-        return returned_note.to_str()
-    return None
+    try:
+        returned_note = db.get_note_from_db_by_id(note_id)
+        if returned_note is not None:
+            logger.info(f"Note number {note_id} was found, layer: note_service")
+            return returned_note.to_str()
+    except NotFoundError:
+        raise NotFoundError("Index doesn't exist")
 
 
 def update_title_of_note(title: str, note_id: int, db: MemoryStorage) -> bool:
     """
     Gets content for update and note's id, and updates the note's content
     """
-    returned_note = db.get_note_from_db_by_id(note_id)
-    if returned_note is None:
-        logger.warning(f"Note number {note_id} wasn't updated, layer: note_service")
-        return False
-    else:
+    try:
+        returned_note = db.get_note_from_db_by_id(note_id)
         returned_note.set_title(title)
         returned_note.set_update_date()
         logger.info(f"Note number {note_id} was updated, layer: note_service")
         return True
+    except NotFoundError:
+        raise NotFoundError("Index wasn't found")
 
 
 def update_content_of_note(content: str | list[str], note_id: int, db: MemoryStorage) -> bool:
     """
     Gets content for update and note's id, and updates the note's content
     """
-    note = db.get_note_from_db_by_id(note_id)
+    try:
+        note = db.get_note_from_db_by_id(note_id)
 
-    if note is None:
-        logger.warning("Note with id %s not found, layer: note_service", note_id)
+        expected_type = (NOTE_INFO[note.note_type])[1]
+
+        if isinstance(content, expected_type):
+            cast(Any, note).set_content(content)
+            note.set_update_date()
+            logger.info(f"Note number {note_id} was updated, layer: note_service")
+            return True
+
+        logger.error("Invalid content type %s for note type %s, layer: note_service", type(content).__name__, type(note).__name__)
         return False
+    except NotFoundError:
+        raise NotFoundError("Index wasn't found")
 
-    expected_type = (NOTE_INFO[note.note_type])[1]
-
-    if isinstance(content, expected_type):
-        cast(Any, note).set_content(content)
-        note.set_update_date()
-        logger.info(f"Note number {note_id} was updated, layer: note_service")
-        return True
-
-    logger.warning("Invalid content type %s for note type %s, layer: note_service", type(content).__name__, type(note).__name__)
-    return False
 
 
 def search_notes_by_date(early_creation_date: datetime, late_creation_date: datetime, db: MemoryStorage) -> list[NoteBase] | None:
@@ -213,14 +215,13 @@ def show_content_url(note_id: int, db: MemoryStorage) -> tuple[int, Any] | None:
     """
     Gets an id of a note, and shows the response content of an http request of its url, if it is a bookMark note
     """
-    note = db.get_note_from_db_by_id(note_id)
+    try:
+        note = db.get_note_from_db_by_id(note_id)
 
-    if note is None:
-        logger.warning(f"Note number {note_id} wasn't found, layer: note_service")
-        return None
+        if not isinstance(note, NoteBookMark):
+            logger.warning(f"Note number {note_id} is not in the right type, layer: note_service")
+            return None
 
-    if not isinstance(note, NoteBookMark):
-        logger.warning(f"Note number {note_id} is not in the right type, layer: note_service")
-        return None
-
-    return note.open_url()
+        return note.open_url()
+    except NotFoundError:
+        raise NotFoundError("not wasn't found")

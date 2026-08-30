@@ -9,6 +9,8 @@ from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
 from notecli.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
+from notecli.exeptions import NotFoundError
+
 
 db = None
 logger = logging.getLogger(__name__)
@@ -84,6 +86,7 @@ def search(request: Request,title: str,start_date: datetime,end_date: datetime):
     logger.info("Note was found")
     return {"note": requested_note, "message": "Notes were found successfully"}
 
+
 @app.get("/notes/{note_id}", status_code=200, tags=["Notes"])
 def view(note_id: int, request: Request):
     """Gets a specific note, using the note's id for getting it"""
@@ -96,6 +99,8 @@ def view(note_id: int, request: Request):
             logger.info("Note viewed")
             return {"note": requested_note, "message": "Note viewed successfully"}
 
+    except NotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
@@ -109,14 +114,14 @@ def update(note_id: int, note_update: NoteUpdate, request: Request):
     content: list[str] | str | None = update_request_content_checker(note_update)
 
     try:
-        is_updated = update_note(note_id, database, note_update.title, content)
+        is_updated: bool = update_note(note_id, database, note_update.title, content)
         if is_updated:
             logger.info("Note was updated")
             return {"message": "Note updated successfully"}
         else:
             raise HTTPException(status_code=400, detail="Failed to update note")
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
+    except NotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
@@ -127,8 +132,8 @@ def delete(note_id: int, request: Request):
     database = request.app.state.db
     try:
         delete_note(note_id, database)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
+    except NotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
     except BlockingIOError as error:
         raise HTTPException(status_code=500, detail=str(error))
     except Exception as error:
@@ -147,8 +152,8 @@ def navigate(note_id: int, request: Request):
         else:
             logger.info("Note's content was shown")
             return {"output": output, "message": "Note's url navigated successfully"}
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
+    except NotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 

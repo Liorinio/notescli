@@ -5,6 +5,7 @@ from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import adder, search_note_by_date_and_title, search_note_by_id, \
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
+from notecli.exeptions import NotFoundError
 
 
 def add_note(given_note_type: str, title: str, content: list[str] | str|  None, db: MemoryStorage | None):
@@ -33,10 +34,13 @@ def delete_note(note_id: int, db: MemoryStorage | None):
     """
     Deletes a note from the db
     """
-    if db is None:
-        return
-    removed_note = deleter(note_id, db)
-    PostgresDb.save_to_db(db.parse_to_dict(), removed_note.note_id)
+    try:
+        if db is None:
+            return
+        removed_note = deleter(note_id, db)
+        PostgresDb.save_to_db(db.parse_to_dict(), removed_note.note_id)
+    except NotFoundError:
+        raise NotFoundError("Note doesn't exist")
 
 
 def get_all_notes(db: MemoryStorage | None):
@@ -66,26 +70,32 @@ def view_specific_note(note_id: int, db: MemoryStorage | None):
     """
     Views a note
     """
-    if db is None:
-        return None
-    returned_description = search_note_by_id(note_id, db)
-    if returned_description is None:
-        return None
-    else:
-        return returned_description
+    try:
+        if db is None:
+            return None
+        returned_description = search_note_by_id(note_id, db)
+        if returned_description is None:
+            return None
+        else:
+            return returned_description
+    except NotFoundError:
+        raise NotFoundError("Note doesn't exist")
 
 
 def navigate_url(note_id: int, db: MemoryStorage | None):
     """
     Get a note's id and gets its http request output (if it is a bookmark note)
     """
-    if db is None:
-        return None
-    returned_output = show_content_url(note_id, db)
-    if returned_output is None:
-        return None
-    else:
-        return returned_output[0], returned_output[1]
+    try:
+        if db is None:
+            return None
+        returned_output = show_content_url(note_id, db)
+        if returned_output is None:
+            return None
+        else:
+            return returned_output[0], returned_output[1]
+    except NotFoundError:
+        raise NotFoundError("Note wasn't found")
 
 
 def update_title(title: str | None, note_id: int, db: MemoryStorage | None):
@@ -114,7 +124,7 @@ def update_content(content: str | list[str] | None, note_id: int, db: MemoryStor
     return is_updated
 
 
-def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], content: Optional[str | list[str]]):
+def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], content: Optional[str | list[str]]) -> bool:
     """
     Updates the title and the content of a note based on the note's id
     """
@@ -122,10 +132,16 @@ def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], co
         return False
 
     if title is not None:
-        update_title_of_note(title, note_id, db)
+        try:
+            update_title_of_note(title, note_id, db)
+        except NotFoundError:
+            raise NotFoundError("Note wasn't found")
 
     if content is not None:
-        update_content_of_note(content, note_id, db)
+        try:
+            update_content_of_note(content, note_id, db)
+        except NotFoundError:
+            raise NotFoundError("Note wasn't found")
 
     if title or content:
         PostgresDb.save_to_db(db.parse_to_dict())
