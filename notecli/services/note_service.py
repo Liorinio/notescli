@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import Union, Any
 import logging
+
+from requests.exceptions import HTTPError
+
 from notecli.app_types.note_base import NoteBase
 from notecli.app_types.note_registery import NOTE_INFO
 from notecli.app_types.note_type import NoteType
@@ -88,17 +91,16 @@ def get_all(db: MemoryStorage | None) -> None | str:
     return "\n".join(output)
 
 
-def retrieve_all_notes(db: MemoryStorage | None):
+def retrieve_all_notes(db: MemoryStorage | None, sort_type: NoteType | None):
     """
     Returns all the notes, suitable for rest-api
     """
     if db is None:
         return None
     data = __parse_notes__(db)
-    return {
-        "notes":
-            [note.to_str() for note in data]
-    }
+    if sort_type is not None:
+        return {"notes":[note.to_str() for note in data if note.note_type == sort_type]}
+    return {"notes": [note.to_str() for note in data]}
 
 
 def show_note_structure() -> str:
@@ -236,7 +238,7 @@ def show_content_url(note_id: int, db: MemoryStorage) -> tuple[int, Any] | None:
 
         if not isinstance(note, NoteBookMark):
             logger.warning(f"Note number {note_id} is not in the right type, layer: note_service")
-            return None
+            raise HTTPError("Can't open a url for note type that isn't bookmark")
 
         return note.open_url()
     except NotFoundError:

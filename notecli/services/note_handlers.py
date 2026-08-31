@@ -1,5 +1,8 @@
 from datetime import datetime
 from typing import Optional
+
+from requests import HTTPError
+
 from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
@@ -96,6 +99,8 @@ def navigate_url(note_id: int, db: MemoryStorage | None):
             return returned_output[0], returned_output[1]
     except NotFoundError:
         raise NotFoundError("Note wasn't found")
+    except HTTPError:
+        raise HTTPError("Can't open a url for note type that isn't bookmark")
 
 
 def update_title(title: str | None, note_id: int, db: MemoryStorage | None):

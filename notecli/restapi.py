@@ -4,7 +4,9 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from requests import HTTPError
 
+from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.exceptions.exception_handler import validation_exception_handler
 from notecli.memory_storage.db_schema import MemoryStorage
@@ -45,18 +47,23 @@ def show_metadata():
 
 
 @app.get("/notes", status_code=200, tags=["Notes"])
-def list_notes(request: Request):
+def list_notes(request: Request,sort_type: str | None = None):
     """Lists notes"""
     database = request.app.state.db
+
     try:
-        list_of_notes = retrieve_all_notes(database)
+        note_type = (NoteType[sort_type.upper()] if sort_type is not None else None)
+
+        list_of_notes = retrieve_all_notes(database, note_type)
+
         if list_of_notes:
             logger.info("Notes listed")
-            return {"data": list_of_notes, "message": "Notes are listed"}
-        else:
-            return {"message": "There are not notes due to none existed database"}
+            return {"data": list_of_notes,"message": "Notes are listed"}
+
+        return {"message": "There are no notes because the database is empty"}
+
     except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
+        raise HTTPException(status_code=400,detail=str(error))
 
 
 
@@ -154,12 +161,15 @@ def navigate(note_id: int, request: Request):
         output = navigate_url(note_id, database)
 
         if output is None:
-            return {"message": "Note doesn't exist"}
+            logger.info("Can't open a url for a note without url")
+            raise HTTPException(status_code=502, detail="Note doesn't have a url")
         else:
             logger.info("Note's content was shown")
             return {"output": output, "message": "Note's url navigated successfully"}
     except NotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
+    except HTTPError as error:
+        raise HTTPException(status_code=502, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 

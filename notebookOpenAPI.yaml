@@ -21,6 +21,13 @@ paths:
         updatedAt. Content fields (text, list, url) are omitted.
         Equivalent to `nb note list`.
       tags: [ Notes ]
+      parameters:
+        - name: sort_type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/NoteType'
+          description: Optional note type to filter or sort notes.
       responses:
         '200':
           description: List of note metadata
