@@ -7,7 +7,7 @@ from notecli.app_types.note_type import NoteType
 from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.utils.metadata import common_metadata_dict, special_fields_dict
-from notecli.exceptions import NotFoundError
+from notecli.exceptions.not_found_exception import NotFoundError
 
 logger = logging.getLogger(__name__)
 

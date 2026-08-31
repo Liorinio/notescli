@@ -4,7 +4,7 @@ from typing import Self
 from notecli.memory_storage.note_store import NoteStore
 from notecli.app_types.note_base import NoteBase
 from notecli.database.tables import Counter
-from notecli.exceptions import NotFoundError
+from notecli.exceptions.not_found_exception import NotFoundError
 
 logger = logging.getLogger(__name__)
 

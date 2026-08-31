@@ -5,7 +5,7 @@ from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import adder, search_note_by_date_and_title, search_note_by_id, \
     update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
-from notecli.exceptions import NotFoundError
+from notecli.exceptions.not_found_exception import NotFoundError
 
 
 def add_note(given_note_type: str, title: str, content: list[str] | str|  None, db: MemoryStorage | None):

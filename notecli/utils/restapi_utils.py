@@ -2,8 +2,11 @@ import yaml
 import os
 from dotenv import load_dotenv
 from fastapi import Request
-
+import logging
 from notecli.app_types.json_request_models import NoteCreate
+
+
+logger = logging.getLogger(__name__)
 
 
 def replace_openapi():
@@ -15,9 +18,9 @@ def replace_openapi():
 
 
 async def restapi_middleware(request: Request, call_next):
-    print("Before the endpoint")
+    logger.info("Before the endpoint, level: restapi_utils")
     response = await call_next(request)
-    print("After the endpoint")
+    logger.info("After the endpoint, level: restapi_utils")
     return response
 
 

@@ -9,7 +9,7 @@ from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
 from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
-from notecli.exceptions import NotFoundError
+from notecli.exceptions.not_found_exception import NotFoundError
 
 
 db = None
