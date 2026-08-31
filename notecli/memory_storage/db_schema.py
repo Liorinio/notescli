@@ -94,3 +94,8 @@ class MemoryStorage:
         list_of_required_notes: list[NoteBase] = [note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.title == title)]
         logger.info("Notes retrieved, layer: memory_storage")
         return list_of_required_notes
+
+    def get_notes_by_title(self, title: str):
+        list_of_required_notes: list[NoteBase] = [note for note in self.db_data if note.title == title]
+        logger.info("Notes retrieved, layer: memory_storage")
+        return list_of_required_notes

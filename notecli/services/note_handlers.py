@@ -56,7 +56,7 @@ def get_all_notes(db: MemoryStorage | None):
     return list_of_notes
 
 
-def search_note(early_creation_date: datetime, late_creation_date: datetime, title: str, db: MemoryStorage | None):
+def search_note(early_creation_date: datetime, late_creation_date: datetime | None, title: str | None, db: MemoryStorage | None):
     """
     Searches a note in the db by its title and a range of dates
     """

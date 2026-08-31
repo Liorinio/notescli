@@ -86,7 +86,7 @@ def add(request: Request,note: NoteCreate):
 
 
 @app.get("/notes/search", status_code=200, tags=["Notes"], operation_id="searchNotes")
-def search(request: Request,title: str,start_date: datetime,end_date: datetime):
+def search(request: Request,title: str| None, start_date: datetime, end_date: datetime | None):
     """Searches notes with query parameters"""
     database = request.app.state.db
     try:

@@ -217,11 +217,30 @@ def search_notes_by_date(early_creation_date: datetime, late_creation_date: date
     return None
 
 
-def search_note_by_date_and_title(early_creation_date: datetime, late_creation_date: datetime, db: MemoryStorage, title: str):
+def search_note_by_date_and_title(early_creation_date: datetime | None, late_creation_date: datetime | None, db: MemoryStorage, title: str | None):
     """
     Gets a range of dates and title, and finds the note accordingly
     """
-    notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
+    notes = []
+    if title is not None and late_creation_date is not None and early_creation_date is not None:
+        notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
+
+    if title is None and late_creation_date is not None and early_creation_date is not None:
+        notes = db.get_notes_by_date(early_creation_date, late_creation_date)
+
+    if title is None and late_creation_date is None and early_creation_date is not None:
+        notes  = db.get_notes_by_date(early_creation_date, datetime.now())
+
+    if title is not None and late_creation_date is None and early_creation_date is None:
+        notes = db.get_notes_by_title(title)
+
+    if title is not None and late_creation_date is None and early_creation_date is not None:
+        notes = db.get_notes_by_date_and_title(early_creation_date, datetime.now(), title)
+
+    if title is None and late_creation_date is None and early_creation_date is None:
+        return None
+
+
     if notes is not None:
         logger.info(f"Notes were found, layer: note_service")
         return [returned_note.to_str() for returned_note in notes]
