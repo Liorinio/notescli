@@ -3,7 +3,10 @@ import uvicorn
 from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+
 from notecli.database.database_manager import PostgresDb
+from notecli.exceptions.exception_handler import validation_exception_handler
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
@@ -31,6 +34,7 @@ async def lifespan(application: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.openapi = replace_openapi
 app.middleware("http")(restapi_middleware)
+app.exception_handler(RequestValidationError)(validation_exception_handler)
 
 
 @app.get("/notes/metadata", status_code=200, tags=["Notes"])
@@ -38,6 +42,7 @@ def show_metadata():
     output = get_note_structure()
     logger.info("metadata showed")
     return {"metadata": output, "message": "Metadata showed"}
+
 
 @app.get("/notes", status_code=200, tags=["Notes"])
 def list_notes(request: Request):
@@ -58,7 +63,6 @@ def list_notes(request: Request):
 @app.post("/notes", status_code=201, tags=["Notes"])
 def add(request: Request,note: NoteCreate):
     database = request.app.state.db
-
     content = create_request_content_checker(note)
 
     try:
@@ -71,7 +75,6 @@ def add(request: Request,note: NoteCreate):
         raise HTTPException(status_code=400, detail=str(error))
 
     logger.info("Note was added")
-
     return {"message": "Note created successfully"}
 
 
@@ -81,10 +84,13 @@ def search(request: Request,title: str,start_date: datetime,end_date: datetime):
     database = request.app.state.db
     try:
         requested_note = search_note(start_date, end_date, title, database)
+        if requested_note is None or requested_note == []:
+            return {"message": "No notes were found"}
+        else:
+            return {"note": requested_note, "message": "Notes were found successfully"}
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-    logger.info("Note was found")
-    return {"note": requested_note, "message": "Notes were found successfully"}
+
 
 
 @app.get("/notes/{note_id}", status_code=200, tags=["Notes"])

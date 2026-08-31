@@ -234,7 +234,7 @@ components:
       schema:
         type: integer
         format: int64
-        minimum: 1
+        minimum: 0
         example: 42
 
   schemas:
@@ -404,6 +404,13 @@ components:
           type: string
           example: "Note not found"
 
+        details:
+          type: array
+          items:
+            type: string
+          example:
+            - "title: must not be blank"
+            - "url: must be a valid URI"
   responses:
     NotFound:
       description: The requested note does not exist
@@ -427,3 +434,17 @@ components:
             details:
               - "title: must not be blank"
               - "url: must be a valid URI"
+
+    ValidationError:
+      description: Request payload failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 422
+            message: "Validation error"
+            details:
+              - "text: Input should be a valid string"
+              - "list: Input should be a valid list"
+              - "url: Input should be a valid URL, relative URL without a base"

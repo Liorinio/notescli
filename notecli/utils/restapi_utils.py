@@ -3,8 +3,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import Request
 import logging
-from notecli.app_types.json_request_models import NoteCreate
-
+from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 
 logger = logging.getLogger(__name__)
 

@@ -130,20 +130,22 @@ def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], co
     """
     if db is None:
         return False
+    is_title_updated = False
+    is_content_updated = False
 
     if title is not None:
         try:
-            update_title_of_note(title, note_id, db)
+            is_title_updated = update_title_of_note(title, note_id, db)
         except NotFoundError:
             raise NotFoundError("Note wasn't found")
 
     if content is not None:
         try:
-            update_content_of_note(content, note_id, db)
+            is_content_updated = update_content_of_note(content, note_id, db)
         except NotFoundError:
             raise NotFoundError("Note wasn't found")
 
-    if title or content:
+    if is_title_updated or is_content_updated:
         PostgresDb.save_to_db(db.parse_to_dict())
         return True
     else:

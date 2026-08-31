@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, Any, cast
+from typing import Union, Any
 import logging
 from notecli.app_types.note_base import NoteBase
 from notecli.app_types.note_registery import NOTE_INFO
@@ -8,6 +8,7 @@ from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.utils.metadata import common_metadata_dict, special_fields_dict
 from notecli.exceptions.not_found_exception import NotFoundError
+from notecli.utils.type_chekcer import bookmark_url_checker
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
     """
     Creates a note according to its type
     """
-    note_class, expected_type, note_class_name = NOTE_INFO[note_type]
+    note_class, expected_type, note_class_name, _ = NOTE_INFO[note_type]
 
     if isinstance(content, expected_type):
         logger.info(f"A {note_class_name} note was created, layer: note_service")
@@ -157,10 +158,14 @@ def update_title_of_note(title: str, note_id: int, db: MemoryStorage) -> bool:
     """
     try:
         returned_note = db.get_note_from_db_by_id(note_id)
-        returned_note.set_title(title)
-        returned_note.set_update_date()
-        logger.info(f"Note number {note_id} was updated, layer: note_service")
-        return True
+        if returned_note.title != title:
+            returned_note.set_title(title)
+            returned_note.set_update_date()
+            logger.info(f"The title of note number {note_id} was updated, layer: note_service")
+            return True
+        else:
+            logger.info(f"The title of note number {note_id} wasn't updated, layer: note_service")
+            return False
     except NotFoundError:
         raise NotFoundError("Index wasn't found")
 
@@ -172,16 +177,27 @@ def update_content_of_note(content: str | list[str], note_id: int, db: MemorySto
     try:
         note = db.get_note_from_db_by_id(note_id)
 
-        expected_type = (NOTE_INFO[note.note_type])[1]
+        required_note_type, expected_type, _, setter = NOTE_INFO[note.note_type]
 
-        if isinstance(content, expected_type):
-            cast(Any, note).set_content(content)
-            note.set_update_date()
-            logger.info(f"Note number {note_id} was updated, layer: note_service")
-            return True
+        if not bookmark_url_checker(note, content):
+            return False
 
-        logger.error("Invalid content type %s for note type %s, layer: note_service", type(content).__name__, type(note).__name__)
-        return False
+        if not isinstance(note, required_note_type):
+            return False
+
+        if not isinstance(content, expected_type):
+            logger.error("Invalid content type %s for note type %s, layer: note_service", type(content).__name__,
+                         type(note).__name__)
+            return False
+
+        if not bookmark_url_checker(note, content):
+            return False
+
+        setter(note, content)
+        note.set_update_date()
+        logger.info(f"Note number {note_id} was updated, layer: note_service")
+
+        return True
     except NotFoundError:
         raise NotFoundError("Index wasn't found")
 

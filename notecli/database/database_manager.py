@@ -67,7 +67,7 @@ class PostgresDb:
                 notes: list[NoteBase] = []
 
                 for row in rows:
-                    note_class, expected_type, note_class_name = NOTE_INFO[NoteType(row.note_type)]
+                    note_class, expected_type, note_class_name, _ = NOTE_INFO[NoteType(row.note_type)]
 
                     if not isinstance(row.content, expected_type):
                         logger.error(f"Invalid type of content, required a {expected_type}, layer: DbManager")
