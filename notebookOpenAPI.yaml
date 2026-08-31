@@ -60,6 +60,8 @@ paths:
       responses:
         '201':
           description: Note created successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   /notes/metadata:
     get:
@@ -86,6 +88,10 @@ paths:
     get:
       operationId: searchNotes
       summary: Search notes
+      description: >
+        Full-content search with optional filters for title substring,
+        creation date range, and tags. All parameters are optional and
+        can be combined. Equivalent to `nb note search [title, date window, tags]`.
       tags: [ Notes ]
       parameters:
         - name: title
@@ -93,6 +99,8 @@ paths:
           description: Case-insensitive substring match on title
           schema:
             type: string
+            minLength: 1
+            example: "shopping"
         - name: start_date
           in: query
           description: Start of creation date window
@@ -108,6 +116,8 @@ paths:
       responses:
         '200':
           description: Matching notes
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   /notes/{note_id}:
     parameters:
@@ -120,10 +130,18 @@ paths:
       responses:
         '200':
           description: The requested note
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 
     put:
       operationId: updateNote
       summary: Update a note
+      description: >
+        Replaces editable fields of an existing note. You must include `type`
+        so the server can validate the payload against the correct schema.
+        `id`, `createdAt`, and `updatedAt` are ignored if supplied.
+        Equivalent to `nb note update [id]`.
       tags: [ Notes ]
       requestBody:
         required: true
@@ -153,14 +171,21 @@ paths:
       responses:
         '200':
           description: The updated note
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+            $ref: '#/components/responses/NotFound'
 
     delete:
       operationId: deleteNote
       summary: Delete a note by ID
+      description: Equivalent to `nb note delete [id]`.
       tags: [ Notes ]
       responses:
         '204':
           description: Note deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   /notes/{note_id}/navigate:
     parameters:
@@ -169,10 +194,35 @@ paths:
     get:
       operationId: navigateNote
       summary: Fetch the content of a bookmark URL
+      description: >
+        Server-side proxies and returns the content of the URL stored in a
+        bookmark note. Equivalent to `nb note navigate [id]`.
+        Returns `422` if the note is not of type `bookmark`.
       tags: [ Notes ]
       responses:
         '200':
           description: Raw content of the bookmarked URL
+          content:
+            text/html:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+            description: Note is not a bookmark
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+        '502':
+            description: Could not fetch the bookmarked URL
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
 components:
   parameters:
@@ -184,6 +234,8 @@ components:
       schema:
         type: integer
         format: int64
+        minimum: 1
+        example: 42
 
   schemas:
     NoteType:
@@ -193,6 +245,85 @@ components:
         - listnote
         - bookmark
       description: The type of note to create or update
+      example: simple
+
+    NoteBase:
+      type: object
+      description: Fields present on every note (all server-managed fields are readOnly)
+      required: [ note_id, title, note_type, createdAt, updatedAt ]
+      properties:
+        note_id:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          description: Server-assigned unique identifier
+          example: 42
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "My note title"
+        note_type:
+          $ref: '#/components/schemas/NoteType'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Set by the server on creation; ISO 8601
+          example: "2026-07-21T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Updated by the server on every write; ISO 8601
+          example: "2026-07-21T12:30:00Z"
+
+    SimpleNote:
+      allOf:
+        - $ref: '#/components/schemas/NoteBase'
+        - type: object
+          required: [ text ]
+          properties:
+            type:
+              type: string
+              enum: [ simple ]
+            text:
+              type: string
+              minLength: 1
+              description: Plain text body of the note
+              example: "Remember to call the dentist."
+
+    ListNote:
+      allOf:
+        - $ref: '#/components/schemas/NoteBase'
+        - type: object
+          required: [ list ]
+          properties:
+            type:
+              type: string
+              enum: [ list ]
+            list:
+              type: array
+              description: Ordered list items
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+              example: [ "Buy milk", "Buy eggs" ]
+    BookmarkNote:
+      allOf:
+        - $ref: '#/components/schemas/NoteBase'
+        - type: object
+          required: [ url ]
+          properties:
+            type:
+              type: string
+              enum: [ bookmark ]
+            url:
+              type: string
+              format: uri
+              description: The bookmarked URL
+              example: "https://example.com"
 
     NoteCreateRequest:
       type: object
