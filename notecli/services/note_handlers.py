@@ -16,11 +16,11 @@ def add_note(given_note_type: str, title: str, content: list[str] | str|  None, 
     Adds a note to db
     """
     if db is None:
-        return
+        return None
     note_type = NoteType[given_note_type.upper()]
 
     if content is None:
-        return
+        return None
 
     if note_type not in (NoteType.SIMPLE, NoteType.BOOKMARK):
         content_to_add: list[str] = content
@@ -29,8 +29,9 @@ def add_note(given_note_type: str, title: str, content: list[str] | str|  None, 
             raise ValueError(f"{note_type.name} notes require exactly one content value")
         content_to_add: str = content
 
-    adder(note_type, title, content_to_add, db)
+    added_note = adder(note_type, title, content_to_add, db)
     PostgresDb.save_to_db(db.parse_to_dict())
+    return added_note
 
 
 def delete_note(note_id: int, db: MemoryStorage | None):

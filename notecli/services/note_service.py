@@ -5,7 +5,7 @@ import logging
 from requests.exceptions import HTTPError
 
 from notecli.app_types.note_base import NoteBase
-from notecli.app_types.note_registery import NOTE_INFO
+from notecli.app_types.note_registery import NOTE_INFO, NOTE_GETTER_SETTER
 from notecli.app_types.note_type import NoteType
 from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
@@ -20,7 +20,7 @@ def __create_note_by_type__(note_type: NoteType, title: str, content: Union[str,
     """
     Creates a note according to its type
     """
-    note_class, expected_type, note_class_name, _ = NOTE_INFO[note_type]
+    note_class, expected_type, note_class_name = NOTE_INFO[note_type]
 
     if isinstance(content, expected_type):
         logger.info(f"A {note_class_name} note was created, layer: note_service")
@@ -70,12 +70,13 @@ def deleter(note_id: int, db: MemoryStorage | None) -> NoteBase:
         raise BlockingIOError("None exist db")
 
 
-def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: MemoryStorage | None) -> None:
+def adder(note_type: NoteType, title: str, content: Union[str, list[str]], db: MemoryStorage | None) -> NoteSimple | NoteList | NoteBookMark:
     """
     Creates and adds a note to the memory db
     """
     note = __create_note_by_type__(note_type, title, content)
     __add_to_db__(note, db)
+    return note
 
 
 def get_all(db: MemoryStorage | None) -> None | str:
@@ -179,9 +180,10 @@ def update_content_of_note(content: str | list[str], note_id: int, db: MemorySto
     try:
         note = db.get_note_from_db_by_id(note_id)
 
-        required_note_type, expected_type, _, setter = NOTE_INFO[note.note_type]
+        required_note_type, expected_type, _ = NOTE_INFO[note.note_type]
+        setter, getter = NOTE_GETTER_SETTER[note.note_type]
 
-        if not bookmark_url_checker(note, content):
+        if note.note_type is NoteBookMark and not bookmark_url_checker(note, content):
             return False
 
         if not isinstance(note, required_note_type):
@@ -192,14 +194,14 @@ def update_content_of_note(content: str | list[str], note_id: int, db: MemorySto
                          type(note).__name__)
             return False
 
-        if not bookmark_url_checker(note, content):
+        if getter(note) == content:
             return False
 
         setter(note, content)
         note.set_update_date()
         logger.info(f"Note number {note_id} was updated, layer: note_service")
-
         return True
+
     except NotFoundError:
         raise NotFoundError("Index wasn't found")
 

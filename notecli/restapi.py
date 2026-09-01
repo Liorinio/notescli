@@ -73,7 +73,13 @@ def add(request: Request,note: NoteCreate):
     content = create_request_content_checker(note)
 
     try:
-        add_note(note.type.name,note.title,content,database)
+        added_note = add_note(note.type.name,note.title,content,database)
+        if added_note:
+            logger.info("Note was added")
+            return {"message": "Note created successfully", "added note": added_note}
+        else:
+            logger.info("The given requirements didn't allow to create a note")
+            return {"message": "The given requirements didn't allow to create a note"}
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
@@ -81,12 +87,11 @@ def add(request: Request,note: NoteCreate):
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
-    logger.info("Note was added")
-    return {"message": "Note created successfully"}
+
 
 
 @app.get("/notes/search", status_code=200, tags=["Notes"], operation_id="searchNotes")
-def search(request: Request,title: str| None, start_date: datetime, end_date: datetime | None):
+def search(request: Request,title: str | None = None, start_date: datetime | None = None, end_date: datetime | None = None):
     """Searches notes with query parameters"""
     database = request.app.state.db
     try:

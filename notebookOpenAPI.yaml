@@ -98,11 +98,12 @@ paths:
       description: >
         Full-content search with optional filters for title substring,
         creation date range, and tags. All parameters are optional and
-        can be combined. Equivalent to `nb note search [title, date window, tags]`.
+        can be combined. Equivalent to `nb note search [title, date window]`.
       tags: [ Notes ]
       parameters:
         - name: title
           in: query
+          required: false
           description: Case-insensitive substring match on title
           schema:
             type: string
@@ -110,12 +111,14 @@ paths:
             example: "shopping"
         - name: start_date
           in: query
+          required: false
           description: Start of creation date window
           schema:
             type: string
             format: date-time
         - name: end_date
           in: query
+          required: false
           description: End of creation date window
           schema:
             type: string
