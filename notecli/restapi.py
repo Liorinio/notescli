@@ -5,14 +5,13 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from requests import HTTPError
-
 from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.exceptions.exception_handler import validation_exception_handler
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
-from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note
-from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker
+from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
+from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker, check_note_create_parameters
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 from notecli.exceptions.not_found_exception import NotFoundError
 
@@ -66,20 +65,24 @@ def list_notes(request: Request,sort_type: str | None = None):
         raise HTTPException(status_code=400,detail=str(error))
 
 
-
 @app.post("/notes", status_code=201, tags=["Notes"])
 def add(request: Request,note: NoteCreate):
     database = request.app.state.db
     content = create_request_content_checker(note)
 
     try:
-        added_note = add_note(note.type.name,note.title,content,database)
-        if added_note:
-            logger.info("Note was added")
-            return {"message": "Note created successfully", "added note": added_note.to_str()}
+        if check_note_create_parameters(note, note.type):
+            added_note = add_note(note.type.name,note.title,content,database)
+            if added_note:
+                logger.info("Note was added")
+                return {"message": "Note created successfully", "added note": added_note.to_str()}
+            else:
+                logger.info("The given requirements didn't allow to create a note of the given type")
+                return {"message": "The given requirements didn't allow to create a note of the given type"}
         else:
-            logger.info("The given requirements didn't allow to create a note")
-            return {"message": "The given requirements didn't allow to create a note"}
+            logger.info("The given requirements didn't allow to create a note of the given type")
+            raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type")
+
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
@@ -123,8 +126,6 @@ def view(note_id: int, request: Request):
         raise HTTPException(status_code=400, detail=str(error))
 
 
-
-
 @app.put("/notes/{note_id}", status_code=200, tags=["Notes"])
 def update(note_id: int, note_update: NoteUpdate, request: Request):
     """Updates a note, using a JSON Request Body"""
@@ -132,14 +133,23 @@ def update(note_id: int, note_update: NoteUpdate, request: Request):
     content: list[str] | str | None = update_request_content_checker(note_update)
 
     try:
-        is_updated: bool = update_note(note_id, database, note_update.title, content)
-        if is_updated:
-            logger.info("Note was updated")
-            requested_note = view_specific_note(note_id, database)
-            if requested_note is not None:
-                return {"message": "Note updated successfully", "updated note": requested_note}
+        if check_note_create_parameters(note_update, note_update.type):
+            got_note = get_note(note_id, database)
+            if got_note is not None and got_note.note_type.name == note_update.type.name:
+                is_updated: bool = update_note(note_id, database, note_update.title, content)
+                if is_updated:
+                    logger.info("Note was updated")
+                    requested_note = view_specific_note(note_id, database)
+                    if requested_note is not None:
+                        return {"message": "Note updated successfully", "updated note": requested_note}
+                else:
+                    raise HTTPException(status_code=400, detail="Failed to update note, same fields as before")
+            else:
+                logger.info("The given requirements didn't allow to create a note of the given type")
+                raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type, cannot swamp types")
         else:
-            raise HTTPException(status_code=400, detail="Failed to update note")
+            logger.info("The given requirements didn't allow to create a note of the given type")
+            raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type, wrong parameters")
     except NotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:

@@ -144,13 +144,22 @@ def get_note_structure() -> dict[str, dict[str, tuple[str, str]] | set[str]]:
 
 def search_note_by_id(note_id: int, db: MemoryStorage) -> str | None:
     """
-    Gets a note's id, and finds the note accordingly
+    Searches a note's id, and finds the note accordingly
     """
     try:
         returned_note = db.get_note_from_db_by_id(note_id)
         if returned_note is not None:
             logger.info(f"Note number {note_id} was found, layer: note_service")
             return returned_note.to_str()
+    except NotFoundError:
+        raise NotFoundError("Index doesn't exist")
+
+def get_note_by_id(note_id: int, db: MemoryStorage):
+    try:
+        returned_note = db.get_note_from_db_by_id(note_id)
+        if returned_note is not None:
+            logger.info(f"Note number {note_id} was found, layer: note_service")
+            return returned_note
     except NotFoundError:
         raise NotFoundError("Index doesn't exist")
 
@@ -223,23 +232,24 @@ def search_note_by_date_and_title(early_creation_date: datetime | None, late_cre
     """
     Gets a range of dates and title, and finds the note accordingly
     """
-    notes = []
-    if title is not None and late_creation_date is not None and early_creation_date is not None:
-        notes = db.get_notes_by_date_and_title(early_creation_date, late_creation_date, title)
+    if early_creation_date is not None:
+        late_creation_date = late_creation_date or datetime.now()
 
-    if title is None and late_creation_date is not None and early_creation_date is not None:
-        notes = db.get_notes_by_date(early_creation_date, late_creation_date)
+        if title is not None:
+            notes = db.get_notes_by_date_and_title(early_creation_date,late_creation_date,title)
+        else:
+            notes = db.get_notes_by_date(early_creation_date,late_creation_date)
 
-    if title is None and late_creation_date is None and early_creation_date is not None:
-        notes  = db.get_notes_by_date(early_creation_date, datetime.now())
+    elif late_creation_date is not None:
+        if title is not None:
+            notes = db.get_notes_by_date_and_title(datetime.min,late_creation_date,title)
+        else:
+            notes = db.get_notes_by_date(datetime.min,late_creation_date)
 
-    if title is not None and late_creation_date is None and early_creation_date is None:
+    elif title is not None:
         notes = db.get_notes_by_title(title)
 
-    if title is not None and late_creation_date is None and early_creation_date is not None:
-        notes = db.get_notes_by_date_and_title(early_creation_date, datetime.now(), title)
-
-    if title is None and late_creation_date is None and early_creation_date is None:
+    else:
         return None
 
 

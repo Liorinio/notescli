@@ -7,7 +7,7 @@ from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import adder, search_note_by_date_and_title, search_note_by_id, \
-    update_content_of_note, update_title_of_note, show_content_url, get_all, deleter
+    update_content_of_note, update_title_of_note, show_content_url, get_all, deleter, get_note_by_id
 from notecli.exceptions.not_found_exception import NotFoundError
 
 
@@ -82,6 +82,18 @@ def view_specific_note(note_id: int, db: MemoryStorage | None):
             return None
         else:
             return returned_description
+    except NotFoundError:
+        raise NotFoundError("Note doesn't exist")
+
+def get_note(note_id: int, db: MemoryStorage | None):
+    try:
+        if db is None:
+            return None
+        required_note = get_note_by_id(note_id, db)
+        if required_note is None:
+            return None
+        else:
+            return required_note
     except NotFoundError:
         raise NotFoundError("Note doesn't exist")
 

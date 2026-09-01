@@ -82,10 +82,13 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - metadata
+                  - message
                 properties:
                   metadata:
-                    description: The structure of the notes
-                    type: object # (Change to 'array' if "get_note_structure returns()" a list)
+                    type: object
+                    description: The structure of the notes returned by get_note_structure()
                   message:
                     type: string
                     example: "Metadata showed"
@@ -201,6 +204,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/NoteId'
 
+
     get:
       operationId: navigateNote
       summary: Fetch the content of a bookmark URL
@@ -265,7 +269,7 @@ components:
         note_id:
           type: integer
           format: int64
-          minimum: 1
+          minimum: 0
           readOnly: true
           description: Server-assigned unique identifier
           example: 42

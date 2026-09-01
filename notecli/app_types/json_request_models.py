@@ -42,3 +42,16 @@ class NoteUpdate(NoteBaseRequest):
     text: Optional[str] = Field(default=None,min_length=1)
     list: Optional[List[str]] = Field(default=None,min_length=1)
     url: Optional[HttpUrl] = None
+
+
+NOTE_CREATE_FIELDS = {
+    NoteType.SIMPLE: ("list", "url"),
+    NoteType.LISTNOTE: ("text", "url"),
+    NoteType.BOOKMARK: ("text", "list")
+}
+
+NOTE_CREATE_CONTENT_FIELD = {
+NoteType.SIMPLE: "text",
+    NoteType.LISTNOTE: "list",
+    NoteType.BOOKMARK: "url"
+}
