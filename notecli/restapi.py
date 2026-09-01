@@ -76,7 +76,7 @@ def add(request: Request,note: NoteCreate):
         added_note = add_note(note.type.name,note.title,content,database)
         if added_note:
             logger.info("Note was added")
-            return {"message": "Note created successfully", "added note": added_note}
+            return {"message": "Note created successfully", "added note": added_note.to_str()}
         else:
             logger.info("The given requirements didn't allow to create a note")
             return {"message": "The given requirements didn't allow to create a note"}
@@ -135,7 +135,9 @@ def update(note_id: int, note_update: NoteUpdate, request: Request):
         is_updated: bool = update_note(note_id, database, note_update.title, content)
         if is_updated:
             logger.info("Note was updated")
-            return {"message": "Note updated successfully"}
+            requested_note = view_specific_note(note_id, database)
+            if requested_note is not None:
+                return {"message": "Note updated successfully", "updated note": requested_note}
         else:
             raise HTTPException(status_code=400, detail="Failed to update note")
     except NotFoundError as error:
