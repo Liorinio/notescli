@@ -11,7 +11,7 @@ from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.utils.metadata import common_metadata_dict, special_fields_dict
 from notecli.exceptions.not_found_exception import NotFoundError
-from notecli.utils.type_chekcer import bookmark_url_checker
+from notecli.utils.type_checker import bookmark_url_checker
 
 logger = logging.getLogger(__name__)
 

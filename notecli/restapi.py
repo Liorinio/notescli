@@ -11,10 +11,10 @@ from notecli.exceptions.exception_handler import validation_exception_handler
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
-from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, update_request_content_checker, create_request_content_checker, check_note_create_parameters
+from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, request_content_checker
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 from notecli.exceptions.not_found_exception import NotFoundError
-
+from notecli.utils.update_parameters_checker import check_note_create_parameters
 
 db = None
 logger = logging.getLogger(__name__)
@@ -52,7 +52,6 @@ def list_notes(request: Request,sort_type: str | None = None):
 
     try:
         note_type = (NoteType[sort_type.upper()] if sort_type is not None else None)
-
         list_of_notes = retrieve_all_notes(database, note_type)
 
         if list_of_notes:
@@ -68,20 +67,20 @@ def list_notes(request: Request,sort_type: str | None = None):
 @app.post("/notes", status_code=201, tags=["Notes"])
 def add(request: Request,note: NoteCreate):
     database = request.app.state.db
-    content = create_request_content_checker(note)
+    content = request_content_checker(note)
 
     try:
-        if check_note_create_parameters(note, note.type):
-            added_note = add_note(note.type.name,note.title,content,database)
-            if added_note:
-                logger.info("Note was added")
-                return {"message": "Note created successfully", "added note": added_note.to_str()}
-            else:
-                logger.info("The given requirements didn't allow to create a note of the given type")
-                return {"message": "The given requirements didn't allow to create a note of the given type"}
-        else:
+        if not check_note_create_parameters(note, note.type):
             logger.info("The given requirements didn't allow to create a note of the given type")
             raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type")
+        else:
+            added_note = add_note(note.type.name,note.title,content,database)
+            if not added_note:
+                logger.info("The given requirements didn't allow to create a note of the given type")
+                return {"message": "The given requirements didn't allow to create a note of the given type"}
+            else:
+                logger.info("Note was added")
+                return {"message": "Note created successfully", "added note": added_note.to_str()}
 
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
@@ -129,31 +128,41 @@ def view(note_id: int, request: Request):
 @app.put("/notes/{note_id}", status_code=200, tags=["Notes"])
 def update(note_id: int, note_update: NoteUpdate, request: Request):
     """Updates a note, using a JSON Request Body"""
+
     database = request.app.state.db
-    content: list[str] | str | None = update_request_content_checker(note_update)
+    content: list[str] | str | None = request_content_checker(note_update)
 
     try:
-        if check_note_create_parameters(note_update, note_update.type):
-            got_note = get_note(note_id, database)
-            if got_note is not None and got_note.note_type.name == note_update.type.name:
-                is_updated: bool = update_note(note_id, database, note_update.title, content)
-                if is_updated:
-                    logger.info("Note was updated")
-                    requested_note = view_specific_note(note_id, database)
-                    if requested_note is not None:
-                        return {"message": "Note updated successfully", "updated note": requested_note}
-                else:
-                    raise HTTPException(status_code=400, detail="Failed to update note, same fields as before")
-            else:
-                logger.info("The given requirements didn't allow to create a note of the given type")
-                raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type, cannot swamp types")
-        else:
-            logger.info("The given requirements didn't allow to create a note of the given type")
-            raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type, wrong parameters")
+        if not check_note_create_parameters(note_update, note_update.type):
+            raise HTTPException(status_code=400,detail="The given requirements didn't allow to update a note of the given type, wrong parameters")
+
+        got_note = get_note(note_id, database)
+
+        if got_note is None:
+            raise HTTPException(status_code=404,detail=f"Note {note_id} not found")
+        if got_note.note_type != note_update.type:
+            raise HTTPException(status_code=400,detail="Cannot change the note type")
+
+        is_updated = update_note(note_id,database,note_update.title,content)
+        if not is_updated:
+            raise HTTPException(status_code=400,detail="Failed to update note, same fields as before")
+
+        requested_note = view_specific_note(note_id, database)
+        if requested_note is None:
+            raise HTTPException(status_code=404,detail=f"Note {note_id} not found after update")
+
+        logger.info("Note was updated")
+        return {"message": "Note updated successfully","updated note": requested_note}
+
     except NotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
+
+    except HTTPException:
+        raise
+
     except Exception as error:
-        raise HTTPException(status_code=400, detail=str(error))
+        logger.exception("Unexpected error while updating note")
+        raise HTTPException(status_code=500, detail=f"Internal server error, {str(error)}")
 
 
 @app.delete("/notes/{note_id}", status_code=204, tags=["Notes"])
