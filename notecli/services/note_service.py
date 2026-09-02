@@ -273,4 +273,4 @@ def show_content_url(note_id: int, db: MemoryStorage) -> tuple[int, Any] | None:
 
         return note.open_url()
     except NotFoundError:
-        raise NotFoundError("not wasn't found")
+        raise NotFoundError("note wasn't found")
