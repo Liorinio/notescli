@@ -99,9 +99,11 @@ def search(request: Request,title: str | None = None, start_date: datetime | Non
     try:
         requested_note = search_note(start_date, end_date, title, database)
         if requested_note is None or requested_note == []:
-            return {"message": "No notes were found"}
+            raise NotFoundError("No notes were found")
         else:
             return {"note": requested_note, "message": "Notes were found successfully"}
+    except NotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
@@ -201,4 +203,4 @@ def navigate(note_id: int, request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=True)
+    uvicorn.run("restapi:app", host="127.0.0.1", port=8080, reload=False)

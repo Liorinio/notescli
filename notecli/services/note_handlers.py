@@ -64,13 +64,16 @@ def search_note(early_creation_date: datetime | None, late_creation_date: dateti
     """
     Searches a note in the db by its title and a range of dates
     """
-    if db is None:
-        return None
-    returned_notes = search_note_by_date_and_title(early_creation_date, late_creation_date, db, title)
-    if returned_notes is None:
-        return None
-    else:
-        return returned_notes
+    try:
+        if db is None:
+            return None
+        returned_notes = search_note_by_date_and_title(early_creation_date, late_creation_date, db, title)
+        if returned_notes is None:
+            return None
+        else:
+            return returned_notes
+    except NotFoundError:
+        raise NotFoundError("Note doesn't exist")
 
 
 def view_specific_note(note_id: int, db: MemoryStorage | None):
