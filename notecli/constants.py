@@ -1,0 +1,7 @@
+# constants for checking attributes
+FIRST_NOT_AVAILABLE_FIELD = 0
+SECOND_NOT_AVAILABLE_FIELD = 1
+REQUIRED_FIELD = 2
+
+
+

@@ -13,8 +13,8 @@ from notecli.app_types.note_base import NoteBase
 from dotenv import load_dotenv
 import os
 
-
 logger = logging.getLogger(__name__)
+
 
 class DbFileStorage:
     file_path = "db.json"
@@ -23,8 +23,9 @@ class DbFileStorage:
     def save_to_db(note_store: NoteStore):
         data = {"db_data": note_store["db_data"], "counter": note_store["counter"]}
 
-        Path(DbFileStorage.file_path).write_text(json.dumps(data, indent=4, default=lambda obj : obj.name))
-        logger.info(f"The database was saved to a file in the following path: {DbFileStorage.file_path}, layer: DbManager")
+        Path(DbFileStorage.file_path).write_text(json.dumps(data, indent=4, default=lambda obj: obj.name))
+        logger.info(
+            f"The database was saved to a file in the following path: {DbFileStorage.file_path}, layer: DbManager")
 
     @staticmethod
     def load_from_db() -> NoteStore:
@@ -35,8 +36,9 @@ class DbFileStorage:
             logger.info(f"The database was read from the following path: {DbFileStorage.file_path}, layer: DbManager")
             return NoteStore(db_data=data["db_data"], counter=data["counter"])
 
-        logger.info(f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created, layer: DbManager")
-        return NoteStore(db_data=[], counter=Counter(id=1,counter=0))
+        logger.info(
+            f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created, layer: DbManager")
+        return NoteStore(db_data=[], counter=Counter(id=1, counter=0))
 
 
 class PostgresDb:
@@ -61,7 +63,7 @@ class PostgresDb:
                 rows = session.scalars(select(Note)).all()
 
                 if not rows:
-                    return NoteStore(db_data=[],counter=db_counter)
+                    return NoteStore(db_data=[], counter=db_counter)
 
                 logger.info("The data was retrieved from the database, layer: DbManager")
                 notes: list[NoteBase] = []
@@ -76,9 +78,10 @@ class PostgresDb:
                     logger.info(f"A {note_class_name} note was created")
 
                     #creating the notes in the memory
-                    notes.append(note_class(title=row.title,note_type=NoteType(row.note_type),content=row.content,creation_time=row.created_at))
+                    notes.append(note_class(title=row.title, note_type=NoteType(row.note_type), content=row.content,
+                                            creation_time=row.created_at))
 
-                return NoteStore(db_data=notes,counter=db_counter)
+                return NoteStore(db_data=notes, counter=db_counter)
 
         except Exception as exception:
             session.close()
@@ -86,7 +89,7 @@ class PostgresDb:
             raise exception
 
     @staticmethod
-    def save_to_db(note_store: NoteStore,optional_deleted_note_id: int | None = None) -> None:
+    def save_to_db(note_store: NoteStore, optional_deleted_note_id: int | None = None) -> None:
         try:
             notes: list[NoteBase] = note_store["db_data"]
 
@@ -94,13 +97,12 @@ class PostgresDb:
                 with session.begin():
                     counter = session.get(Counter, 1)
 
-
-                    if optional_deleted_note_id is not None:
-                        PostgresDb.delete_note_for_postgres(optional_deleted_note_id,session)
-                    else:
+                    if optional_deleted_note_id is None:
                         PostgresDb.__upsertNote__(notes, session)
+                    else:
+                        PostgresDb.delete_note_for_postgres(optional_deleted_note_id, session)
 
-                    PostgresDb.__set_db_counter__(counter,session,note_store["counter"].counter)
+                    PostgresDb.__set_db_counter__(counter, session, note_store["counter"].counter)
 
         except Exception as exception:
             logger.exception("Failed to save notes to PostgreSQL, layer: DbManager")
@@ -116,7 +118,8 @@ class PostgresDb:
 
             if existing_note is None:
                 new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value,
-                                created_at=note.created_at, updated_at=note.updated_at,content=getattr(note, "content", getattr(note, "content_site_url", None)))
+                                created_at=note.created_at, updated_at=note.updated_at,
+                                content=getattr(note, "content", getattr(note, "content_site_url", None)))
 
                 session.add(new_note)
                 logger.info(f"Note number: {note.note_id} was added to the postgres db, layer: DbManager")
@@ -133,9 +136,8 @@ class PostgresDb:
 
                 logger.info(f"Note number: {note.note_id} was updated in the postgres db, layer: DbManager")
 
-
     @staticmethod
-    def delete_note_for_postgres(removed_note_id: int,session: Session) -> None:
+    def delete_note_for_postgres(removed_note_id: int, session: Session) -> None:
         deleted_note = session.get(Note, removed_note_id)
 
         if deleted_note is None:
@@ -143,10 +145,10 @@ class PostgresDb:
 
         session.delete(deleted_note)
 
-        logger.info("Note number %s was deleted from the postgres db, layer: DbManager",removed_note_id)
+        logger.info("Note number %s was deleted from the postgres db, layer: DbManager", removed_note_id)
 
     @staticmethod
-    def __set_db_counter__(counter: Counter | None, session:Session, memory_db_counter: int) -> None:
+    def __set_db_counter__(counter: Counter | None, session: Session, memory_db_counter: int) -> None:
         """
        Setting the counter of the db in the Postgres db
         """

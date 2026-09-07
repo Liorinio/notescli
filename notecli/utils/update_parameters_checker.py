@@ -1,12 +1,13 @@
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate, NOTE_CREATE_FIELDS, NoteBaseRequest
 from notecli.app_types.note_type import NoteType
+from notecli.constants import FIRST_NOT_AVAILABLE_FIELD, SECOND_NOT_AVAILABLE_FIELD, REQUIRED_FIELD
 
 
 def __are_fields_not_exist_for_type__(note: NoteCreate | NoteUpdate, note_type: NoteType):
     if note.type != note_type:
         return False
-    possible_exist_first_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][0], None)
-    possible_exist_second_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][1], None)
+    possible_exist_first_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][FIRST_NOT_AVAILABLE_FIELD], None)
+    possible_exist_second_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][SECOND_NOT_AVAILABLE_FIELD], None)
 
     return possible_exist_first_content_attr is None and possible_exist_second_content_attr is None
 
@@ -14,7 +15,7 @@ def __are_fields_not_exist_for_type__(note: NoteCreate | NoteUpdate, note_type: 
 def __check_type_content_match__(note: NoteCreate | NoteUpdate, note_type: NoteType):
     if note.type != note_type:
         return False
-    content_field = NOTE_CREATE_FIELDS[note_type][2]
+    content_field = NOTE_CREATE_FIELDS[note_type][REQUIRED_FIELD]
     return getattr(note, content_field, None) is not None
 
 
