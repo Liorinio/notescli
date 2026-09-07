@@ -22,12 +22,15 @@ def add_note(given_note_type: str, title: str, content: list[str] | str|  None, 
     if content is None:
         return None
 
-    if note_type not in (NoteType.SIMPLE, NoteType.BOOKMARK):
-        content_to_add: list[str] = content
-    else:
-        if type(content) is not str:
+    if note_type in (NoteType.SIMPLE, NoteType.BOOKMARK):
+        if isinstance(content, list):
             raise ValueError(f"{note_type.name} notes require exactly one content value")
         content_to_add: str = content
+    else:
+        if isinstance(content, str):
+            raise ValueError(f"{note_type.name} notes require multiple content values")
+        content_to_add: list[str] = content
+
 
     added_note = adder(note_type, title, content_to_add, db)
     PostgresDb.save_to_db(db.parse_to_dict())
@@ -57,7 +60,7 @@ def get_all_notes(db: MemoryStorage | None):
     return list_of_notes
 
 
-def search_note(early_creation_date: datetime, late_creation_date: datetime | None, title: str | None, db: MemoryStorage | None):
+def search_note(early_creation_date: datetime | None, late_creation_date: datetime | None, title: str | None, db: MemoryStorage | None):
     """
     Searches a note in the db by its title and a range of dates
     """
