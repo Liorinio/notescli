@@ -79,8 +79,12 @@ class MemoryStorage:
     def get_notes_by_date(self, early_creation_date: datetime, late_creation_date: datetime) -> list[NoteBase] | None:
         try:
             list_of_required_notes: list[NoteBase] = [note for note in self.db_data if early_creation_date <= note.get_creation_date() <= late_creation_date]
-            logger.info("Notes retrieved, layer: memory_storage")
-            return list_of_required_notes
+            if list_of_required_notes:
+                logger.info("Notes retrieved, layer: memory_storage")
+                return list_of_required_notes
+            else:
+                raise NotFoundError("Notes weren't found")
+
         except NotFoundError:
             raise NotFoundError("Notes weren't found")
 
@@ -89,26 +93,37 @@ class MemoryStorage:
             late_creation_date += timedelta(seconds=1)
 
             required_note: NoteBase | None = next((note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.note_id == note_id)),None)
-            logger.info("Notes retrieved, layer: memory_storage")
-            return required_note
+            if required_note:
+                logger.info("Notes retrieved, layer: memory_storage")
+                return required_note
+            else:
+                raise NotFoundError("Note wasn't found")
+
 
         except NotFoundError:
-            raise NotFoundError("Notes weren't found")
+            raise NotFoundError("Notes wasn't found")
 
     def get_notes_by_date_and_title(self, early_creation_date: datetime, late_creation_date: datetime, title: str) -> list[NoteBase] | None:
         try:
             late_creation_date += timedelta(seconds=1)
 
             list_of_required_notes: list[NoteBase] = [note for note in self.db_data if (early_creation_date <= note.get_creation_date() < late_creation_date and note.title == title)]
-            logger.info("Notes retrieved, layer: memory_storage")
-            return list_of_required_notes
+            if list_of_required_notes:
+                logger.info("Notes retrieved, layer: memory_storage")
+                return list_of_required_notes
+            else:
+                raise NotFoundError("Notes weren't found")
         except NotFoundError:
             raise NotFoundError("Notes weren't found")
 
     def get_notes_by_title(self, title: str):
         try:
             list_of_required_notes: list[NoteBase] = [note for note in self.db_data if note.title == title]
-            logger.info("Notes retrieved, layer: memory_storage")
-            return list_of_required_notes
+            if list_of_required_notes:
+                logger.info("Notes retrieved, layer: memory_storage")
+                return list_of_required_notes
+            else:
+                raise NotFoundError("Notes weren't found")
+
         except NotFoundError:
             raise NotFoundError("Notes weren't found")
