@@ -1,9 +1,10 @@
 pydantic
 requests
 typer
-psycopg
 fastapi
 sqlalchemy
 uvicorn
 python-dotenv
 pyyaml
+psycopg[binary]
+redis
