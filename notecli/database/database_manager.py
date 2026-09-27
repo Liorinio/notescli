@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from notecli.app_types.note_base import NoteBase
 from dotenv import load_dotenv
 import os
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -158,3 +159,105 @@ class PostgresDb:
         else:
             counter.counter = memory_db_counter
             logger.info("Counter was updated in the postgres db, layer: DbManager")
+
+class RedisDb:
+    r = redis.Redis(host="localhost",port=6379,db=0,decode_responses=True)
+
+    @staticmethod
+    def load_from_db() -> NoteStore:
+        try:
+            counter_data = r.hgetall("counter")
+
+            if not counter_data:
+                db_counter = Counter(id=1, counter=0)
+            else:
+                db_counter = Counter(id=int(counter_data["id"]),counter=int(counter_data["counter"]),)
+
+            notes: list[NoteBase] = []
+
+            for key in r.scan_iter(match="note:*"):
+                row = r.hgetall(key)
+
+                note_type = NoteType(int(row["note_type"]))
+                note_class, expected_type, note_class_name = NOTE_INFO[note_type]
+
+                content = json.loads(row["content"])
+
+                if not isinstance(content, expected_type):
+                    logger.error(f"Invalid type of content, required a {expected_type}, "f"layer: DbManager")
+                    raise TypeError(f"The content's type must be of a type: {expected_type}, "f"layer: DbManager")
+
+                logger.info(f"A {note_class_name} note was created")
+
+                notes.append(
+                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,content=content,created_at=datetime.fromisoformat(row["created_at"],updated_at=datetime.fromisoformat(row["updated_at"])))
+                )
+
+            logger.info("The data was retrieved from Redis, layer: DbManager")
+
+            return NoteStore(db_data=notes,counter=db_counter)
+
+        except Exception as exception:
+            logger.exception(exception)
+            raise exception
+
+    @staticmethod
+    def save_to_db(note_store: NoteStore,optional_deleted_note_id: int | None = None) -> None:
+        try:
+            notes: list[NoteBase] = note_store["db_data"]
+
+            if optional_deleted_note_id is None:
+                RedisDb.__upsert_notes__(notes)
+            else:
+                RedisDb.delete_note_from_redis(optional_deleted_note_id)
+
+            RedisDb.__set_redis_counter__(note_store["counter"].counter)
+
+        except Exception as exception:
+            logger.exception("Failed to save notes to Redis, layer: DbManager")
+            raise exception
+
+    @staticmethod
+    def __upsert_notes__(notes: list[NoteBase]) -> None:
+        for note in notes:
+            key = f"note:{note.note_id}"
+
+            note_data = {
+                "note_id": note.note_id,
+                "title": note.title,
+                "note_type": note.note_type.value,
+                "created_at": note.created_at.isoformat(),
+                "updated_at": note.updated_at.isoformat(),
+            }
+
+            if hasattr(note, "content"):
+                note_data["content"] = json.dumps(note.content)
+            elif hasattr(note, "content_site_url"):
+                note_data["content"] = json.dumps(note.content_site_url)
+            else:
+                raise ValueError(f"Note {note.note_id} has no content, layer: DbManager")
+
+            r.hset(key, mapping=note_data)
+
+            logger.info("Note number: %s was added/updated in Redis, layer: DbManager",note.note_id)
+
+    @staticmethod
+    def delete_note_from_redis(removed_note_id: int) -> None:
+        key = f"note:{removed_note_id}"
+
+        if not r.exists(key):
+            raise ValueError(f"Note {removed_note_id} does not exist in Redis, ""layer: DbManager")
+
+        r.delete(key)
+        logger.info("Note number %s was deleted from Redis, layer: DbManager",removed_note_id)
+
+    @staticmethod
+    def __set_redis_counter__(memory_db_counter: int) -> None:
+        r.hset("counter",
+            mapping={
+                "id": 1,
+                "counter": memory_db_counter,
+            }
+        )
+
+        logger.info("Counter was added/updated in Redis, layer: DbManager")
