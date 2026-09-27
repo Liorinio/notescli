@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["python", "notecli.restapi:app",  "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "notecli.restapi:app",  "--host", "0.0.0.0", "--port", "8080"]

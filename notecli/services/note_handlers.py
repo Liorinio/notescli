@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Optional
-
 from requests import HTTPError
-
 from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage

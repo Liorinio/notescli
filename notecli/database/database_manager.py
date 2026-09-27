@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import NoResultFound
@@ -166,7 +167,7 @@ class RedisDb:
     @staticmethod
     def load_from_db() -> NoteStore:
         try:
-            counter_data = r.hgetall("counter")
+            counter_data = RedisDb.r.hgetall("counter")
 
             if not counter_data:
                 db_counter = Counter(id=1, counter=0)
@@ -175,8 +176,8 @@ class RedisDb:
 
             notes: list[NoteBase] = []
 
-            for key in r.scan_iter(match="note:*"):
-                row = r.hgetall(key)
+            for key in RedisDb.r.scan_iter(match="note:*"):
+                row = RedisDb.r.hgetall(key)
 
                 note_type = NoteType(int(row["note_type"]))
                 note_class, expected_type, note_class_name = NOTE_INFO[note_type]
@@ -190,7 +191,7 @@ class RedisDb:
                 logger.info(f"A {note_class_name} note was created")
 
                 notes.append(
-                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,content=content,created_at=datetime.fromisoformat(row["created_at"],updated_at=datetime.fromisoformat(row["updated_at"])))
+                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,created_at=datetime.fromisoformat(row["created_at"]),updated_at=datetime.fromisoformat(row["updated_at"]), content=content)
                 )
 
             logger.info("The data was retrieved from Redis, layer: DbManager")
@@ -237,7 +238,7 @@ class RedisDb:
             else:
                 raise ValueError(f"Note {note.note_id} has no content, layer: DbManager")
 
-            r.hset(key, mapping=note_data)
+            RedisDb.r.hset(key, mapping=note_data)
 
             logger.info("Note number: %s was added/updated in Redis, layer: DbManager",note.note_id)
 
@@ -245,15 +246,15 @@ class RedisDb:
     def delete_note_from_redis(removed_note_id: int) -> None:
         key = f"note:{removed_note_id}"
 
-        if not r.exists(key):
+        if not RedisDb.r.exists(key):
             raise ValueError(f"Note {removed_note_id} does not exist in Redis, ""layer: DbManager")
 
-        r.delete(key)
+        RedisDb.r.delete(key)
         logger.info("Note number %s was deleted from Redis, layer: DbManager",removed_note_id)
 
     @staticmethod
     def __set_redis_counter__(memory_db_counter: int) -> None:
-        r.hset("counter",
+        RedisDb.r.hset("counter",
             mapping={
                 "id": 1,
                 "counter": memory_db_counter,
