@@ -17,7 +17,6 @@ import redis
 
 logger = logging.getLogger(__name__)
 
-
 class DbFileStorage:
     file_path = "db.json"
 
@@ -42,10 +41,9 @@ class DbFileStorage:
             f"The database wasn't existed in following path: {DbFileStorage.file_path}, hence it was created, layer: DbManager")
         return NoteStore(db_data=[], counter=Counter(id=1, counter=0))
 
-
 class PostgresDb:
     load_dotenv()
-    engine = create_engine(os.environ["DATABASE_URL"])
+    engine = create_engine(os.environ["POSTGRES_DATABASE_URL"])
     SessionLocal = sessionmaker(bind=engine)
 
     logger.info("connected successfully to the postgres db, layer: DbManager")
@@ -162,12 +160,12 @@ class PostgresDb:
             logger.info("Counter was updated in the postgres db, layer: DbManager")
 
 class RedisDb:
-    r = redis.Redis(host="localhost",port=6379,db=0,decode_responses=True)
+    redis_client = redis.Redis(host=os.environ["REDIS_HOST"], port=os.environ['REDIS_PORT'], db=0, decode_responses=True)
 
     @staticmethod
     def load_from_db() -> NoteStore:
         try:
-            counter_data = RedisDb.r.hgetall("counter")
+            counter_data = RedisDb.redis_client.hgetall("counter")
 
             if not counter_data:
                 db_counter = Counter(id=1, counter=0)
@@ -176,8 +174,8 @@ class RedisDb:
 
             notes: list[NoteBase] = []
 
-            for key in RedisDb.r.scan_iter(match="note:*"):
-                row = RedisDb.r.hgetall(key)
+            for key in RedisDb.redis_client.scan_iter(match="note:*"):
+                row = RedisDb.redis_client.hgetall(key)
 
                 note_type = NoteType(int(row["note_type"]))
                 note_class, expected_type, note_class_name = NOTE_INFO[note_type]
@@ -238,7 +236,7 @@ class RedisDb:
             else:
                 raise ValueError(f"Note {note.note_id} has no content, layer: DbManager")
 
-            RedisDb.r.hset(key, mapping=note_data)
+            RedisDb.redis_client.hset(key, mapping=note_data)
 
             logger.info("Note number: %s was added/updated in Redis, layer: DbManager",note.note_id)
 
@@ -246,19 +244,19 @@ class RedisDb:
     def delete_note_from_redis(removed_note_id: int) -> None:
         key = f"note:{removed_note_id}"
 
-        if not RedisDb.r.exists(key):
+        if not RedisDb.redis_client.exists(key):
             raise ValueError(f"Note {removed_note_id} does not exist in Redis, ""layer: DbManager")
 
-        RedisDb.r.delete(key)
+        RedisDb.redis_client.delete(key)
         logger.info("Note number %s was deleted from Redis, layer: DbManager",removed_note_id)
 
     @staticmethod
     def __set_redis_counter__(memory_db_counter: int) -> None:
-        RedisDb.r.hset("counter",
-            mapping={
+        RedisDb.redis_client.hset("counter",
+                                  mapping={
                 "id": 1,
                 "counter": memory_db_counter,
             }
-        )
+                                  )
 
         logger.info("Counter was added/updated in Redis, layer: DbManager")

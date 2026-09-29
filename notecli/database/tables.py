@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 load_dotenv()
-engine = create_engine(os.environ["DATABASE_URL"])
+engine = create_engine(os.environ["POSTGRES_DATABASE_URL"])
 connection = engine.connect()
 
 logger.info("connected successfully to the postgres db, layer: table creation")
