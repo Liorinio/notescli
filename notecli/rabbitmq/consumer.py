@@ -4,7 +4,6 @@ from pydantic import BaseModel, ValidationError
 from typing import Any, Optional, TypedDict
 
 
-# --- Schemas ---
 class QueueRequest(BaseModel):
     action: str
     params: dict = {}
@@ -18,7 +17,6 @@ class QueueResponse(BaseModel):
     data: Optional[Any] = None
     error: Optional[str] = None
 
-# --- Business Logic ---
 def add_user(params: AddUserParams):
     return f"Added {params['username']}, age {params['age']}"
 
@@ -47,3 +45,19 @@ def on_message_received(ch, method, properties, body):
         response = QueueResponse(status="Error", data=error)
 
     ch.basic_publish(exchange='', routing_key='response_queue', body=response.model_dump_json())
+
+    print(f"[*] Sent response: {response.model_dump_json()}")
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+def main():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue='response_queue', durable=True, exclusive=True)
+    channel.queue_declare(queue='request_queue', durable=True, exclusive=True)
+    channel.basic_consume(queue='request_queue', on_message_callback=on_message_received)
+
+    channel.start_consuming()
+
+if __name__ == "__main__":
+    main()
