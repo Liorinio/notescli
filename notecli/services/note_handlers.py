@@ -9,7 +9,7 @@ from notecli.services.note_service import adder, search_note_by_date_and_title, 
 from notecli.exceptions.not_found_exception import NotFoundError
 
 
-def add_note(given_note_type: str, title: str, content: list[str] | str|  None, db: MemoryStorage | None):
+def add_note(given_note_type: str, title: str, content: list[str] | str|  None, db: MemoryStorage | None) -> None | NoteSimple | NoteList | NoteBookMark:
     """
     Adds a note to db
     """
@@ -35,7 +35,7 @@ def add_note(given_note_type: str, title: str, content: list[str] | str|  None, 
     return added_note
 
 
-def delete_note(note_id: int, db: MemoryStorage | None):
+def delete_note(note_id: int, db: MemoryStorage | None) -> None:
     """
     Deletes a note from the db
     """
@@ -48,7 +48,7 @@ def delete_note(note_id: int, db: MemoryStorage | None):
         raise NotFoundError("Note doesn't exist")
 
 
-def get_all_notes(db: MemoryStorage | None):
+def get_all_notes(db: MemoryStorage | None) -> str | None:
     """
     Lists the notes from db
     """
@@ -58,7 +58,7 @@ def get_all_notes(db: MemoryStorage | None):
     return list_of_notes
 
 
-def search_note(early_creation_date: datetime | None, late_creation_date: datetime | None, title: str | None, db: MemoryStorage | None):
+def search_note(early_creation_date: datetime | None, late_creation_date: datetime | None, title: str | None, db: MemoryStorage | None) -> list[str] | None:
     """
     Searches a note in the db by its title and a range of dates
     """
@@ -74,7 +74,7 @@ def search_note(early_creation_date: datetime | None, late_creation_date: dateti
         raise NotFoundError("Note doesn't exist")
 
 
-def view_specific_note(note_id: int, db: MemoryStorage | None):
+def view_specific_note(note_id: int, db: MemoryStorage | None) -> str | None:
     """
     Views a note
     """
@@ -89,7 +89,7 @@ def view_specific_note(note_id: int, db: MemoryStorage | None):
     except NotFoundError:
         raise NotFoundError("Note doesn't exist")
 
-def get_note(note_id: int, db: MemoryStorage | None):
+def get_note(note_id: int, db: MemoryStorage | None) -> NoteBase | None:
     try:
         if db is None:
             return None
@@ -102,7 +102,7 @@ def get_note(note_id: int, db: MemoryStorage | None):
         raise NotFoundError("Note doesn't exist")
 
 
-def navigate_url(note_id: int, db: MemoryStorage | None):
+def navigate_url(note_id: int, db: MemoryStorage | None) -> tuple[int, Any] | None:
     """
     Get a note's id and gets its http request output (if it is a bookmark note)
     """
@@ -120,7 +120,7 @@ def navigate_url(note_id: int, db: MemoryStorage | None):
         raise HTTPError("Can't open a url for note type that isn't bookmark")
 
 
-def update_title(title: str | None, note_id: int, db: MemoryStorage | None):
+def update_title(title: str | None, note_id: int, db: MemoryStorage | None) -> Literal[False] | bool:
     """
     Updates the title of a note based on the note's id
     """
@@ -133,7 +133,7 @@ def update_title(title: str | None, note_id: int, db: MemoryStorage | None):
     return is_updated
 
 
-def update_content(content: str | list[str] | None, note_id: int, db: MemoryStorage | None):
+def update_content(content: str | list[str] | None, note_id: int, db: MemoryStorage | None) -> Literal[False] | bool:
     """
     Updates the content of a note based on the note's id
     """
@@ -146,7 +146,7 @@ def update_content(content: str | list[str] | None, note_id: int, db: MemoryStor
     return is_updated
 
 
-def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], content: Optional[str | list[str]]) -> bool:
+def update_note(note_id: int, db: MemoryStorage | None, title: Optional[str], content: Optional[str | list[str]]) -> Literal[False, True]:
     """
     Updates the title and the content of a note based on the note's id
     """

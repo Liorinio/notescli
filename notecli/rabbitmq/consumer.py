@@ -2,28 +2,17 @@ import pika
 import json
 from pydantic import BaseModel, ValidationError
 from typing import Any, Optional, TypedDict
+from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, GetAllNotesParams, SearchNoteParams, ViewNoteParams, QueueResponse, UpdateNoteParams
 
 
-class QueueRequest(BaseModel):
-    action: str
-    params: dict = {}
-
-class AddUserParams(TypedDict):
-    username: str
-    age: int
-
-class QueueResponse(BaseModel):
-    status: str
-    data: Optional[Any] = None
-    error: Optional[str] = None
+ACTION_ROUTER = {
+    "addUser": {"schema": AddUserParams, "handler": add_user},
+    "add": {"schema": AddNoteParams, "handler": add_handler}
+    #todo - create a flie of rabbitmq-handlers which use the note handlers that the restapi uses
+}
 
 def add_user(params: AddUserParams):
     return f"Added {params['username']}, age {params['age']}"
-
-ACTION_ROUTER = {
-    "add": {"schema": AddUserParams, "handler": add_user},
-}
-
 
 def on_message_received(ch, method, properties, body):
     try:
