@@ -1,12 +1,13 @@
 import pika
 import json
+import argparse
 
 
-def send_message(action: str, params: dict):
+def send_request(action: str, params: dict):
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
 
-    channel.queue_declare(queue='request_queue', durable=True, exclusive=True)
+    channel.queue_declare(queue='request_queue', durable=True)
 
     payload = {
         "action": action,
@@ -26,10 +27,14 @@ if __name__ == '__main__':
     parser.add_argument("action", type=str, help="The action to trigger (e.g., 'add' or 'delete')")
     parser.add_argument("params", type=str, help="The parameters formatted as a JSON string")
 
+    # 2. Parse the arguments provided in the terminal
     args = parser.parse_args()
 
     try:
+        # 3. Convert the JSON string from the terminal into a Python dictionary
         parsed_params = json.loads(args.params)
+
+        # 4. Send the dynamic request
         send_request(action=args.action, params=parsed_params)
 
     except json.JSONDecodeError as e:
