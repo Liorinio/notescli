@@ -3,11 +3,12 @@ import json
 from pydantic import BaseModel, ValidationError
 from typing import Any, Optional, TypedDict
 from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, GetAllNotesParams, SearchNoteParams, ViewNoteParams, QueueResponse, UpdateNoteParams
+from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector
 
 
 ACTION_ROUTER = {
     "addUser": {"schema": AddUserParams, "handler": add_user},
-    "add": {"schema": AddNoteParams, "handler": add_handler}
+    "add": {"schema": AddNoteParams, "handler": add_connector}
     #todo - create a flie of rabbitmq-handlers which use the note handlers that the restapi uses
 }
 
@@ -26,7 +27,11 @@ def on_message_received(ch, method, properties, body):
         validated_params = route["schema"](**request.params)
         result = route["handler"](validated_params)
 
-        response = QueueResponse(status="success", data=result)
+        message_status = "success"
+        if result is None:
+            status = "error"
+
+        response = QueueResponse(status=status, data=result)
 
     except ValidationError as error:
         response = QueueResponse(status="Error", data=error)
