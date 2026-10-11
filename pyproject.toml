@@ -18,7 +18,8 @@ dependencies = [
     "pyyaml>=6.0.3",
     "redis>=8.1.0",
     "pika>=1.4.4",
-    "python3-pika>=0.9.14"
+    "python3-pika>=0.9.14",
+    "booktype>=1.5"
 ]
 
 [project.scripts]

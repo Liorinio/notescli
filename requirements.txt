@@ -10,3 +10,4 @@ psycopg[binary]
 redis
 pika
 python3-pika
+booktype
