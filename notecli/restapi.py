@@ -46,7 +46,7 @@ def show_metadata():
 
 
 @app.get("/notes", status_code=200, tags=["Notes"])
-def list_notes(request: Request,sort_type: str | None = None):
+def list_notes(request: Request, sort_type: str | None = None):
     """Lists notes"""
     database = request.app.state.db
 
@@ -159,8 +159,8 @@ def update(note_id: int, note_update: NoteUpdate, request: Request):
     except NotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
-    except HTTPException:
-        raise
+    except HTTPError as error:
+        raise HTTPException(status_code=502, detail=str(error))
 
     except Exception as error:
         logger.exception("Unexpected error while updating note")

@@ -99,9 +99,9 @@ def retrieve_all_notes(db: MemoryStorage | None, sort_type: NoteType | None):
     if db is None:
         return None
     data = __parse_notes__(db)
-    if sort_type is not None:
-        return {"notes":[note.to_str() for note in data if note.note_type == sort_type]}
-    return {"notes": [note.to_str() for note in data]}
+    if sort_type is None:
+        return {"notes": [note.to_str() for note in data]}
+    return {"notes":[note.to_str() for note in data if note.note_type == sort_type]}
 
 
 def show_note_structure() -> str:

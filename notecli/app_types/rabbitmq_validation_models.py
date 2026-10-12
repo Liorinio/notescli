@@ -1,5 +1,8 @@
+from datetime import datetime
 from pydantic import BaseModel
 from typing import Any, Optional, TypedDict
+from notecli.memory_storage.db_schema import MemoryStorage
+
 
 class QueueRequest(BaseModel):
     action: str
@@ -21,6 +24,7 @@ class DeleteNoteParams(TypedDict):
     db: MemoryStorage | None
 
 class GetAllNotesParams(TypedDict):
+    sort_type: str | None
     db: MemoryStorage | None
 
 class SearchNoteParams(TypedDict):
