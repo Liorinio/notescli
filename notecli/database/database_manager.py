@@ -160,7 +160,8 @@ class PostgresDb:
             logger.info("Counter was updated in the postgres db, layer: DbManager")
 
 class RedisDb:
-    redis_client = redis.Redis(host=os.environ["REDIS_HOST"], port=os.environ['REDIS_PORT'], db=0, decode_responses=True)
+    redis_url = f"redis://{os.environ['REDIS_HOST']}:{os.environ['REDIS_PORT']}/0"
+    redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
 
     @staticmethod
     def load_from_db() -> NoteStore:
@@ -236,7 +237,7 @@ class RedisDb:
             else:
                 raise ValueError(f"Note {note.note_id} has no content, layer: DbManager")
 
-            RedisDb.redis_client.hset(key, mapping=note_data)
+            RedisDb.redis_client.hset(name= key, key=key, value=note_data)
 
             logger.info("Note number: %s was added/updated in Redis, layer: DbManager",note.note_id)
 
@@ -252,11 +253,11 @@ class RedisDb:
 
     @staticmethod
     def __set_redis_counter__(memory_db_counter: int) -> None:
-        RedisDb.redis_client.hset("counter",
-                                  mapping={
-                "id": 1,
-                "counter": memory_db_counter,
-            }
-                                  )
+        RedisDb.redis_client.hset(name="counter",
+                                  key="counter",
+                                  value={
+                                      "id": 1,"counter": memory_db_counter,
+                                  }
+                                )
 
         logger.info("Counter was added/updated in Redis, layer: DbManager")
