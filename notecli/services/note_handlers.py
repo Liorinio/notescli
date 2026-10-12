@@ -1,6 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any, Literal
 from requests import HTTPError
+
+from notecli.app_types.note_base import NoteBase
+from notecli.app_types.note_models import NoteSimple, NoteList, NoteBookMark
 from notecli.app_types.note_type import NoteType
 from notecli.database.database_manager import PostgresDb
 from notecli.memory_storage.db_schema import MemoryStorage
