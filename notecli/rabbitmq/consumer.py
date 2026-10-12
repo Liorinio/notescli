@@ -5,6 +5,7 @@ import json
 from pydantic import ValidationError
 from notecli.app_types.rabbitmq_validation_models import AddNoteParams, QueueResponse, QueueRequest, DeleteNoteParams, UpdateNoteParams, GetAllNotesParams, ViewNoteParams, MetadatNoteParams, NavigateNoteParams, SearchNoteParams
 from notecli.database.database_manager import PostgresDb
+from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector, delete_connector, get_all_notes_connector, metadata_connector,navigate_connector, search_connector,update_connector,view_connector
 
@@ -41,7 +42,9 @@ def on_message_received(ch, method, properties, body, db):
         response = QueueResponse(status=message_status, data=result)
 
     except ValidationError as error:
-        response = QueueResponse(status="Error", data=str(error.errors()))
+        response = QueueResponse(status="Validation Error", data=str(error.errors()))
+    except NotFoundError as error:
+        response = QueueResponse(status="Not Found Error", data=str(error))
     except Exception as error:
         response = QueueResponse(status="Error", data=str(error))
 
