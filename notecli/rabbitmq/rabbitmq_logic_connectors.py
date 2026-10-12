@@ -5,6 +5,8 @@ from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, Add
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
+from notecli.utils.rabbitmq_utils import request_content_checker_rabbit_update
+from notecli.utils.update_parameters_checker import check_note_create_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +99,36 @@ def view_connector(view_params: ViewNoteParams):
         return {"message": "No note was viewed due to an error", "error": error}
 
 def update_connector(update_params: UpdateNoteParams):
-    ...
+    content: list[str] | str | None = request_content_checker_rabbit_update(update_params) #create similar func for update params
+
+    try:
+        if not check_note_create_parameters(update_params, update_params["note_type"]):  #create similar func for update_params
+            return {"message": "The given requirements didn't allow to update a note of the given type, wrong parameters"}
+
+        got_note = get_note(update_params["note_id"], update_params['db'])
+
+        if got_note is None:
+            return {"message": f"Note not found"}
+        if got_note.note_type != update_params["note_id"]:
+            return {"message": "Cannot change the note type"}
+
+        is_updated = update_note(update_params["note_id"], update_params["db"], update_params["title"], content)
+        if not is_updated:
+            raise {"message": "Failed to update note, same fields as before"}
+
+        requested_note = view_specific_note(update_params["note_id"], update_params["db"])
+        if requested_note is None:
+            return {"message": f"Note {update_params["note_id"]} not found after update"}
+
+        logger.info("Note was updated")
+        return {"message": "Note updated successfully", "updated note": requested_note}
+
+    except NotFoundError as error:
+        return {"message": str(error)}
+
+    except Exception as error:
+        logger.exception("Unexpected error while updating note")
+        raise {"message" : f"Internal server error, {str(error)}"}
 
 def metadata_connector():
     output = get_note_structure()

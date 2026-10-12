@@ -1,19 +1,21 @@
 import pika
 import json
-from pydantic import BaseModel, ValidationError
-from typing import Any, Optional, TypedDict
-from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, GetAllNotesParams, SearchNoteParams, ViewNoteParams, QueueResponse, UpdateNoteParams
-from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector
-
+from pydantic import ValidationError
+from notecli.app_types.rabbitmq_validation_models import AddNoteParams, QueueResponse, QueueRequest, DeleteNoteParams, \
+    UpdateNoteParams, GetAllNotesParams, ViewNoteParams, MetadatNoteParams, NavigateNoteParams, SearchNoteParams
+from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector, delete_connector, get_all_notes_connector, metadata_connector,navigate_connector, search_connector,update_connector,view_connector
 
 ACTION_ROUTER = {
-    "addUser": {"schema": AddUserParams, "handler": add_user},
-    "add": {"schema": AddNoteParams, "handler": add_connector}
-    #todo - create a flie of rabbitmq-handlers which use the note handlers that the restapi uses
-}
+    "add": {"schema": AddNoteParams, "handler": add_connector},
+    "delete": {"schema": DeleteNoteParams, "handler": delete_connector},
+    "update" :{"schema": UpdateNoteParams, "handler" :update_connector},
+    "list" :{"schema": GetAllNotesParams, "handler" : get_all_notes_connector},
+    "view" : {"schema": ViewNoteParams, "handler" :view_connector},
+    "metadata" : {"schema": MetadatNoteParams , "handler" :metadata_connector},
+    "navigate" : {"schema": NavigateNoteParams , "handler" :navigate_connector},
+    "search" : {"schema": SearchNoteParams, "handler" :search_connector}
+    }
 
-def add_user(params: AddUserParams):
-    return f"Added {params['username']}, age {params['age']}"
 
 def on_message_received(ch, method, properties, body):
     try:
@@ -29,9 +31,9 @@ def on_message_received(ch, method, properties, body):
 
         message_status = "success"
         if result is None:
-            status = "error"
+            message_status = "error"
 
-        response = QueueResponse(status=status, data=result)
+        response = QueueResponse(status=message_status, data=result)
 
     except ValidationError as error:
         response = QueueResponse(status="Error", data=error)
@@ -43,6 +45,7 @@ def on_message_received(ch, method, properties, body):
     print(f"[*] Sent response: {response.model_dump_json()}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+
 def cons_main():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
@@ -52,6 +55,7 @@ def cons_main():
     channel.basic_consume(queue='request_queue', on_message_callback=on_message_received)
 
     channel.start_consuming()
+
 
 if __name__ == "__main__":
     cons_main()

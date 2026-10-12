@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional, TypedDict, List
+from notecli.app_types.note_models import NoteBookMark, NoteSimple, NoteList
 from notecli.memory_storage.db_schema import MemoryStorage
 
 
@@ -45,7 +46,13 @@ class UpdateNoteParams(TypedDict):
     note_id: int
     db: MemoryStorage | None
     title: Optional[str]
-    content: Optional[str | list[str]]
+    text: Optional[str]
+    list: Optional[List[str]]
+    url: Optional[str]
+    note_type : NoteSimple | NoteBookMark | NoteList
+
+class MetadatNoteParams(TypedDict):
+    pass
 
 class QueueResponse(BaseModel):
     status: str
