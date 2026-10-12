@@ -1,8 +1,12 @@
+import functools
+import logging
 import pika
 import json
 from pydantic import ValidationError
 from notecli.app_types.rabbitmq_validation_models import AddNoteParams, QueueResponse, QueueRequest, DeleteNoteParams, \
     UpdateNoteParams, GetAllNotesParams, ViewNoteParams, MetadatNoteParams, NavigateNoteParams, SearchNoteParams
+from notecli.database.database_manager import PostgresDb
+from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector, delete_connector, get_all_notes_connector, metadata_connector,navigate_connector, search_connector,update_connector,view_connector
 
 ACTION_ROUTER = {
@@ -17,7 +21,9 @@ ACTION_ROUTER = {
     }
 
 
-def on_message_received(ch, method, properties, body):
+logger = logging.getLogger(__name__)
+
+def on_message_received(ch, method, properties, body, db):
     try:
         raw_payload = json.loads(body)
         request = QueueRequest(**raw_payload)
@@ -27,7 +33,7 @@ def on_message_received(ch, method, properties, body):
 
         route = ACTION_ROUTER[request.action]
         validated_params = route["schema"](**request.params)
-        result = route["handler"](validated_params)
+        result = route["handler"](validated_params, db)
 
         message_status = "success"
         if result is None:
@@ -36,25 +42,50 @@ def on_message_received(ch, method, properties, body):
         response = QueueResponse(status=message_status, data=result)
 
     except ValidationError as error:
-        response = QueueResponse(status="Error", data=error)
+        response = QueueResponse(status="Error", data=str(error.errors()))
     except Exception as error:
-        response = QueueResponse(status="Error", data=error)
+        response = QueueResponse(status="Error", data=str(error))
 
     ch.basic_publish(exchange='', routing_key='response_queue', body=response.model_dump_json())
-
-    print(f"[*] Sent response: {response.model_dump_json()}")
+    logger.info(f"Sent response: {response.model_dump_json()}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def cons_main():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
+    db = MemoryStorage()
+    db = db.parse_from_dict(PostgresDb.load_from_db())
+    logger.info("The database has been loaded, layer: rabbitmq")
 
-    channel.queue_declare(queue='response_queue', durable=True)
-    channel.queue_declare(queue='request_queue', durable=True)
-    channel.basic_consume(queue='request_queue', on_message_callback=on_message_received)
+    connection = None
 
-    channel.start_consuming()
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        channel = connection.channel()
+
+        channel.queue_declare(queue='response_queue', durable=True)
+        channel.queue_declare(queue='request_queue', durable=True)
+
+        callback_with_db = functools.partial(on_message_received, db=db)
+
+        channel.basic_consume(
+            queue='request_queue',
+            on_message_callback=callback_with_db,
+            auto_ack=False
+        )
+
+        logger.info("Worker is waiting for messages. To exit press CTRL+C")
+        channel.start_consuming()
+
+    except KeyboardInterrupt:
+        logger.info("Stopping worker...")
+
+    finally:
+        db = None
+        logger.info("The database is shutting down, layer: rabbitmq")
+
+        if connection is not None and 'connection' in locals() and connection.is_open:
+            connection.close()
+            logger.info("RabbitMQ connection closed.")
 
 
 if __name__ == "__main__":
