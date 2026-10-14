@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 import pika
 import json
 from pydantic import ValidationError
@@ -8,6 +9,9 @@ from notecli.database.database_manager import PostgresDb
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.rabbitmq.rabbitmq_logic_connectors import add_connector, delete_connector, get_all_notes_connector, metadata_connector,navigate_connector, search_connector,update_connector,view_connector
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ACTION_ROUTER = {
     "add": {"schema": AddNoteParams, "handler": add_connector},
@@ -61,7 +65,18 @@ def cons_main():
     connection = None
 
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        credentials = pika.PlainCredentials(
+            os.environ["RABBITMQ_USER"],
+            os.environ["RABBITMQ_PASSWORD"],
+        )
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=os.environ["RABBITMQ_HOST"],
+                port=int(os.environ["RABBITMQ_PORT"]),
+                credentials=credentials,
+            )
+        )
         channel = connection.channel()
 
         channel.queue_declare(queue='response_queue', durable=True)

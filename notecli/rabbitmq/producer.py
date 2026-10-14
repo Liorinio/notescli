@@ -1,10 +1,25 @@
+import os
 import pika
 import json
 import argparse
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def send_request(action: str, params: dict):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    credentials = pika.PlainCredentials(
+        os.environ["RABBITMQ_USER"],
+        os.environ["RABBITMQ_PASSWORD"],
+    )
+
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host=os.environ["RABBITMQ_HOST"],
+            port=int(os.environ["RABBITMQ_PORT"]),
+            credentials=credentials,
+        )
+    )
     channel = connection.channel()
 
     channel.queue_declare(queue='request_queue', durable=True)
