@@ -161,7 +161,7 @@ class PostgresDb:
 
 class RedisDb:
     redis_url = f"redis://{os.environ['REDIS_HOST']}:{os.environ['REDIS_PORT']}/0"
-    redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
+    redis_client = redis.from_url(redis_url, decode_responses=True)
 
     @staticmethod
     def load_from_db() -> NoteStore:
