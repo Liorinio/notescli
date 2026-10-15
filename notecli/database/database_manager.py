@@ -44,7 +44,7 @@ class DbFileStorage:
 
 class PostgresDb:
     load_dotenv()
-    engine = create_engine(os.environ["POSTGRES_DATABASE_URL"])
+    engine = create_engine(os.environ["DATABASE_URL"])
     SessionLocal = sessionmaker(bind=engine)
 
     logger.info("connected successfully to the postgres db, layer: DbManager")
@@ -161,13 +161,11 @@ class PostgresDb:
             logger.info("Counter was updated in the postgres db, layer: DbManager")
 
 class RedisDb:
-    redis_url = (
-        f"redis://{os.environ['REDIS_HOST']}:"
-        f"{os.environ['REDIS_PORT']}/0"
-    )
 
-    redis_client = redis.Redis.from_url(
-        redis_url,
+    redis_client = redis.Redis(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", "6379")),
+        db=0,
         decode_responses=True,
     )
 

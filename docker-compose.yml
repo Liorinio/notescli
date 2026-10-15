@@ -1,5 +1,24 @@
 services:
 
+  api:
+    build: .
+    container_name: restapi
+    ports:
+      - "8080:8080"
+    environment:
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      OPENAPI_FILE_PATH: ${OPENAPI_FILE_PATH}
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
 
   postgres:
     image: postgres:17
@@ -8,6 +27,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DATABASE_URL: ${DATABASE_URL}
     ports:
       - "5432:5432"
     volumes:
@@ -16,6 +36,9 @@ services:
   redis:
     image: redis:8
     container_name: redis
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
@@ -29,10 +52,31 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
+  worker:
+    build: .
+    container_name: rabbitmq_worker
+
+    command: python -m notecli.rabbitmq.consumer
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      OPENAPI_FILE_PATH: ${OPENAPI_FILE_PATH}
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
 
 volumes:
   postgres_data:

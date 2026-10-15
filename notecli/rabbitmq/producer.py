@@ -8,16 +8,15 @@ load_dotenv()
 
 
 def send_request(action: str, params: dict):
-    credentials = pika.PlainCredentials(
-        os.environ["RABBITMQ_USER"],
-        os.environ["RABBITMQ_PASSWORD"],
-    )
+    mq_user = os.getenv("RABBITMQ_USER", "guest")
+    mq_pass = os.getenv("RABBITMQ_PASSWORD", "guest")
+    credentials = pika.PlainCredentials(mq_user, mq_pass)
 
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host=os.environ["RABBITMQ_HOST"],
-            port=int(os.environ["RABBITMQ_PORT"]),
-            credentials=credentials,
+            host='localhost',  # <--- HARDCODE THIS TO 'localhost'
+            port=5672,
+            credentials=credentials
         )
     )
     channel = connection.channel()
