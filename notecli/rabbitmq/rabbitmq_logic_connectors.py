@@ -6,8 +6,7 @@ from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
-from notecli.utils.rabbitmq_utils import request_content_checker_rabbit_update
-from notecli.utils.update_parameters_checker import check_note_create_parameters
+from notecli.utils.rabbitmq_utils import request_content_checker_rabbit_update, check_note_create_parameters_rabbit_update
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +21,21 @@ def add_connector(add_params: AddNoteParams, db: MemoryStorage | None):
             logger.info("Note was added")
             return {"message": "Note created successfully", "added note": added_note.to_str()}
     except ValueError as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
     except KeyError as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
     except Exception as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
 
 def delete_connector(delete_params: DeleteNoteParams, db: MemoryStorage | None):
     try:
         delete_note(delete_params["note_id"], db)
     except NotFoundError as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
     except BlockingIOError as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
     except Exception as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": error}
+        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
     logger.info("Note was deleted")
     return None
 
@@ -52,9 +51,9 @@ def navigate_connector(navigate_params: NavigateNoteParams, db: MemoryStorage | 
             logger.info("Note's content was shown")
             return {"output": output, "message": "Note's url navigated successfully"}
     except NotFoundError as error:
-        return {"message": "The given requirements didn't allow to open the note's url", "error": error}
+        return {"message": "The given requirements didn't allow to open the note's url", "error": str(error)}
     except Exception as error:
-        return {"message": "The given requirements didn't allow to open the note's url", "error": error}
+        return {"message": "The given requirements didn't allow to open the note's url", "error": str(error)}
 
 
 def get_all_notes_connector(get_notes_params: GetAllNotesParams, db: MemoryStorage | None):
@@ -70,7 +69,7 @@ def get_all_notes_connector(get_notes_params: GetAllNotesParams, db: MemoryStora
         return {"message": "There are no notes because the database is empty"}
 
     except Exception as error:
-        return {"message": "Cannot retrieve notes due to an error", "error": error}
+        return {"message": "Cannot retrieve notes due to an error", "error": str(error)}
 
 
 def search_connector(search_params: SearchNoteParams, db: MemoryStorage | None):
@@ -81,9 +80,9 @@ def search_connector(search_params: SearchNoteParams, db: MemoryStorage | None):
         else:
             return {"note": requested_note, "message": "Notes were found successfully"}
     except NotFoundError as error:
-        return {"message": "No notes were found due to an error", "error": error}
+        return {"message": "No notes were found due to an error", "error": str(error)}
     except Exception as error:
-        return {"message": "No notes were found due to an error", "error": error}
+        return {"message": "No notes were found due to an error", "error": str(error)}
 
 
 def view_connector(view_params: ViewNoteParams, db: MemoryStorage | None):
@@ -96,7 +95,7 @@ def view_connector(view_params: ViewNoteParams, db: MemoryStorage | None):
             return {"note": requested_note, "message": "Note viewed successfully"}
 
     except NotFoundError as error:
-        return {"message": "No note was viewed due to an error", "error": error}
+        return {"message": "No note was viewed due to an error", "error": str(error)}
     except Exception as error:
         return {"message": "No note was viewed due to an error", "error": error}
 
@@ -104,7 +103,7 @@ def update_connector(update_params: UpdateNoteParams, db: MemoryStorage | None):
     content: list[str] | str | None = request_content_checker_rabbit_update(update_params)
 
     try:
-        if not check_note_create_parameters(update_params, update_params["note_type"]):
+        if not check_note_create_parameters_rabbit_update(update_params, NoteType(update_params["note_type"])):
             return {"message": "The given requirements didn't allow to update a note of the given type, wrong parameters"}
 
         got_note = get_note(update_params["note_id"], db)

@@ -28,6 +28,7 @@ ACTION_ROUTER = {
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def on_message_received(ch, method, properties, body, db):
     try:
@@ -83,12 +84,15 @@ def cons_main():
 
         for attempt in range(max_retries):
             try:
-                print(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries})...")
+                #print(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries})...")
+                logger.info(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries})...")
                 connection = pika.BlockingConnection(connection_params)
-                print("[*] Successfully connected to RabbitMQ!")
+                #print("[*] Successfully connected to RabbitMQ!")
+                logger.info("[*] Successfully connected to RabbitMQ!")
                 break
             except pika.exceptions.AMQPConnectionError:
-                print("[!] RabbitMQ is not ready yet. Waiting 5 seconds...")
+                #print("[!] RabbitMQ is not ready yet. Waiting 5 seconds...")
+                logger.warning("[!] RabbitMQ is not ready yet. Waiting 5 seconds...")
                 time.sleep(5)
 
         if not connection:
@@ -107,7 +111,8 @@ def cons_main():
             auto_ack=False
         )
 
-        print("[*] Worker is waiting for messages. To exit press CTRL+C")
+        #print("[*] Worker is waiting for messages. To exit press CTRL+C")
+        logger.info("[*] Worker is waiting for messages. To exit press CTRL+C")
         channel.start_consuming()
 
     except KeyboardInterrupt:

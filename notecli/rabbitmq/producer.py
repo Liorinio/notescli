@@ -14,7 +14,7 @@ def send_request(action: str, params: dict):
 
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host='localhost',  # <--- HARDCODE THIS TO 'localhost'
+            host='localhost',
             port=5672,
             credentials=credentials
         )
