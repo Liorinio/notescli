@@ -195,8 +195,17 @@ class RedisDb:
 
                 logger.info(f"A {note_class_name} note was created")
 
+                created_at = row['created_at']
+                updated_at = row["updated_at"]
+
+                if isinstance(updated_at, bytes):
+                    updated_at = updated_at.decode("utf-8")
+
+                if isinstance(created_at, bytes):
+                    created_at = created_at.decode("utf-8")
+
                 notes.append(
-                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,created_at=datetime.fromisoformat(row["created_at"]),updated_at=datetime.fromisoformat(row["updated_at"]), content=content)
+                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,created_at=datetime.fromisoformat(created_at),updated_at=datetime.fromisoformat(updated_at), content=content)
                 )
 
             logger.info("The data was retrieved from Redis, layer: DbManager")
