@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker
@@ -43,7 +44,7 @@ class DbFileStorage:
 
 class PostgresDb:
     load_dotenv()
-    engine = create_engine(os.environ["POSTGRES_DATABASE_URL"])
+    engine = create_engine(os.environ["DATABASE_URL"])
     SessionLocal = sessionmaker(bind=engine)
 
     logger.info("connected successfully to the postgres db, layer: DbManager")
@@ -119,7 +120,7 @@ class PostgresDb:
             if existing_note is None:
                 new_note = Note(note_id=note.note_id, title=note.title, note_type=note.note_type.value,
                                 created_at=note.created_at, updated_at=note.updated_at,
-                                content=getattr(note, "content", getattr(note, "content_site_url", None)))
+                                content=cast(str | list[str], getattr(note, "content", getattr(note, "content_site_url", None))))
 
                 session.add(new_note)
                 logger.info(f"Note number: {note.note_id} was added to the postgres db, layer: DbManager")
@@ -160,8 +161,13 @@ class PostgresDb:
             logger.info("Counter was updated in the postgres db, layer: DbManager")
 
 class RedisDb:
-    redis_url = f"redis://{os.environ['REDIS_HOST']}:{os.environ['REDIS_PORT']}/0"
-    redis_client = redis.from_url(redis_url, decode_responses=True)
+
+    redis_client = redis.Redis(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", "6379")),
+        db=0,
+        decode_responses=True,
+    )
 
     @staticmethod
     def load_from_db() -> NoteStore:
@@ -189,8 +195,17 @@ class RedisDb:
 
                 logger.info(f"A {note_class_name} note was created")
 
+                created_at = row['created_at']
+                updated_at = row["updated_at"]
+
+                if isinstance(updated_at, bytes):
+                    updated_at = updated_at.decode("utf-8")
+
+                if isinstance(created_at, bytes):
+                    created_at = created_at.decode("utf-8")
+
                 notes.append(
-                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,created_at=datetime.fromisoformat(row["created_at"]),updated_at=datetime.fromisoformat(row["updated_at"]), content=content)
+                    note_class(note_id=row["note_id"],title=row["title"],note_type=note_type,created_at=datetime.fromisoformat(created_at),updated_at=datetime.fromisoformat(updated_at), content=content)
                 )
 
             logger.info("The data was retrieved from Redis, layer: DbManager")
@@ -237,7 +252,7 @@ class RedisDb:
             else:
                 raise ValueError(f"Note {note.note_id} has no content, layer: DbManager")
 
-            RedisDb.redis_client.hset(name= key, key=key, value=note_data)
+            RedisDb.redis_client.hset(name=key,mapping=note_data,)
 
             logger.info("Note number: %s was added/updated in Redis, layer: DbManager",note.note_id)
 
@@ -253,11 +268,12 @@ class RedisDb:
 
     @staticmethod
     def __set_redis_counter__(memory_db_counter: int) -> None:
-        RedisDb.redis_client.hset(name="counter",
-                                  key="counter",
-                                  value={
-                                      "id": 1,"counter": memory_db_counter,
-                                  }
-                                )
+        RedisDb.redis_client.hset(
+            name="counter",
+            mapping={
+                "id": 1,
+                "counter": memory_db_counter,
+            },
+        )
 
         logger.info("Counter was added/updated in Redis, layer: DbManager")
