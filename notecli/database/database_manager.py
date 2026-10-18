@@ -78,9 +78,16 @@ class PostgresDb:
 
                     logger.info(f"A {note_class_name} note was created")
 
-                    #creating the notes in the memory
-                    notes.append(note_class(title=row.title, note_type=NoteType(row.note_type), content=row.content,
-                                            creation_time=row.created_at))
+                    new_note = note_class(
+                        title=row.title,
+                        note_type=NoteType(row.note_type),
+                        content=row.content,
+                        creation_time=row.created_at
+                    )
+
+                    new_note.set_id(row.id)
+
+                    notes.append(new_note)
 
                 return NoteStore(db_data=notes, counter=db_counter)
 

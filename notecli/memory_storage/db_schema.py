@@ -45,7 +45,7 @@ class MemoryStorage:
         notes_counter = 0
 
         for note in data_dict["db_data"]:
-            note.set_id(notes_counter)
+            #note.set_id(notes_counter)
             self.db_data.append(note)
             notes_counter += 1
 

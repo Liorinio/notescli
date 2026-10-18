@@ -1,18 +1,24 @@
 import logging
 from notecli.app_types.note_models import NoteSimple, NoteBookMark, NoteList
 from notecli.app_types.note_type import NoteType
-from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, GetAllNotesParams, SearchNoteParams, ViewNoteParams, UpdateNoteParams
+from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, \
+    GetAllNotesParams, SearchNoteParams, ViewNoteParams, UpdateNoteParams
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.memory_storage.db_schema import MemoryStorage
-from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
+from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, \
+    search_note, get_note
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
-from notecli.utils.rabbitmq_utils import request_content_checker_rabbit_update, check_note_create_parameters_rabbit_update
+from notecli.utils.rabbitmq_utils import request_content_checker_rabbit_update, \
+    check_note_create_parameters_rabbit_update
 
 logger = logging.getLogger(__name__)
 
+
 def add_connector(add_params: AddNoteParams, db: MemoryStorage | None):
     try:
-        added_note: NoteSimple | NoteBookMark | NoteList | None = add_note(add_params['given_note_type'], add_params['title'], add_params['content'], db)
+        added_note: NoteSimple | NoteBookMark | NoteList | None = add_note(add_params['given_note_type'],
+                                                                           add_params['title'], add_params['content'],
+                                                                           db)
 
         if not added_note:
             logger.info("The given requirements didn't allow to create a note of the given type")
@@ -21,23 +27,31 @@ def add_connector(add_params: AddNoteParams, db: MemoryStorage | None):
             logger.info("Note was added")
             return {"message": "Note created successfully", "added note": added_note.to_str()}
     except ValueError as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
+        return {"message": "The given requirements didn't allow to create a note of the given type",
+                "error": str(error)}
     except KeyError as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
+        return {"message": "The given requirements didn't allow to create a note of the given type",
+                "error": str(error)}
     except Exception as error:
-        return {"message": "The given requirements didn't allow to create a note of the given type", "error": str(error)}
+        return {"message": "The given requirements didn't allow to create a note of the given type",
+                "error": str(error)}
+
 
 def delete_connector(delete_params: DeleteNoteParams, db: MemoryStorage | None):
     try:
         delete_note(delete_params["note_id"], db)
+        logger.info("Note was deleted")
+        return {"message": f"Note {delete_params['note_id']} successfully deleted."}
     except NotFoundError as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
+        return {"message": "The given requirements didn't allow to delete the note of the given type",
+                "error": str(error)}
     except BlockingIOError as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
+        return {
+            "message": "The given requirements didn't allow to delete the note of the given type, IO operation blocked",
+            "error": str(error)}
     except Exception as error:
-        return {"message": "The given requirements didn't allow to delete the note of the given type", "error": str(error)}
-    logger.info("Note was deleted")
-    return None
+        return {"message": "The given requirements didn't allow to delete the note of the given type, unknown error",
+                "error": str(error)}
 
 
 def navigate_connector(navigate_params: NavigateNoteParams, db: MemoryStorage | None):
@@ -74,7 +88,8 @@ def get_all_notes_connector(get_notes_params: GetAllNotesParams, db: MemoryStora
 
 def search_connector(search_params: SearchNoteParams, db: MemoryStorage | None):
     try:
-        requested_note = search_note(search_params['early_creation_date'], search_params['late_creation_date'], search_params['title'], db)
+        requested_note = search_note(search_params['early_creation_date'], search_params['late_creation_date'],
+                                     search_params['title'], db)
         if requested_note is None or requested_note == []:
             raise NotFoundError("No notes were found")
         else:
@@ -99,12 +114,14 @@ def view_connector(view_params: ViewNoteParams, db: MemoryStorage | None):
     except Exception as error:
         return {"message": "No note was viewed due to an error", "error": error}
 
+
 def update_connector(update_params: UpdateNoteParams, db: MemoryStorage | None):
     content: list[str] | str | None = request_content_checker_rabbit_update(update_params)
 
     try:
         if not check_note_create_parameters_rabbit_update(update_params, NoteType(update_params["note_type"])):
-            return {"message": "The given requirements didn't allow to update a note of the given type, wrong parameters"}
+            return {
+                "message": "The given requirements didn't allow to update a note of the given type, wrong parameters"}
 
         got_note = get_note(update_params["note_id"], db)
 
@@ -129,7 +146,8 @@ def update_connector(update_params: UpdateNoteParams, db: MemoryStorage | None):
 
     except Exception as error:
         logger.exception("Unexpected error while updating note")
-        raise {"message" : f"Internal server error, {str(error)}"}
+        raise {"message": f"Internal server error, {str(error)}"}
+
 
 def metadata_connector():
     output = get_note_structure()

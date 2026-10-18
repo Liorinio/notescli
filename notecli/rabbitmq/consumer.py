@@ -43,10 +43,10 @@ def on_message_received(ch, method, properties, body, db):
         result = route["handler"](validated_params, db)
 
         message_status = "success"
-        if result is None or "error" in result:
+        if result is None or result.get("error") is not None:
             message_status = "error"
 
-        response = QueueResponse(status=message_status, data=result)
+        response = QueueResponse(status=message_status, data=result, error=result.get('error'))
 
     except ValidationError as error:
         response = QueueResponse(status="Validation Error", data=str(error.errors()))
@@ -60,8 +60,25 @@ def on_message_received(ch, method, properties, body, db):
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def cons_main():
+    db_data = None
+    max_retries_postgres_connection = 5
+
+    for attempt in range(max_retries_postgres_connection):
+        try:
+            logger.info(f"[*] Attempting to connect to Postgres (Attempt {attempt + 1}/{max_retries_postgres_connection})...")
+            db_data = PostgresDb.load_from_db()
+            logger.info("[*] Successfully loaded data from Postgres!")
+            break
+        except Exception as e:
+            logger.warning("[!] Postgres is not ready yet. Waiting 5 seconds...")
+            logger.warning(f"The error that occurred: {e}")
+            time.sleep(5)
+
+    if db_data is None:
+        raise Exception("Failed to connect to Postgres after maximum retries. Exiting.")
+
     db = MemoryStorage()
-    db = db.parse_from_dict(PostgresDb.load_from_db())
+    db = db.parse_from_dict(db_data)
     logger.info("The database has been loaded, layer: rabbitmq")
 
     connection = None
@@ -80,18 +97,15 @@ def cons_main():
         )
 
         connection = None
-        max_retries = 5
+        max_retries_postgres_connection = 5
 
-        for attempt in range(max_retries):
+        for attempt in range(max_retries_postgres_connection):
             try:
-                #print(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries})...")
-                logger.info(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries})...")
+                logger.info(f"[*] Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{max_retries_postgres_connection})...")
                 connection = pika.BlockingConnection(connection_params)
-                #print("[*] Successfully connected to RabbitMQ!")
                 logger.info("[*] Successfully connected to RabbitMQ!")
                 break
             except pika.exceptions.AMQPConnectionError:
-                #print("[!] RabbitMQ is not ready yet. Waiting 5 seconds...")
                 logger.warning("[!] RabbitMQ is not ready yet. Waiting 5 seconds...")
                 time.sleep(5)
 
@@ -111,7 +125,6 @@ def cons_main():
             auto_ack=False
         )
 
-        #print("[*] Worker is waiting for messages. To exit press CTRL+C")
         logger.info("[*] Worker is waiting for messages. To exit press CTRL+C")
         channel.start_consuming()
 
