@@ -119,27 +119,37 @@ def update_connector(update_params: UpdateNoteParams, db: MemoryStorage | None):
     content: list[str] | str | None = request_content_checker_rabbit_update(update_params)
 
     try:
-        if not check_note_create_parameters_rabbit_update(update_params, NoteType(update_params["note_type"])):
-            return {
-                "message": "The given requirements didn't allow to update a note of the given type, wrong parameters"}
+        if db is not None:
+            existing_note = db.get_note_from_db_by_id(update_params["note_id"])
 
-        got_note = get_note(update_params["note_id"], db)
+            if not check_note_create_parameters_rabbit_update(update_params, existing_note.note_type):
+                return {
+                    "status": "error","message": "The given requirements didn't allow to update a note of the given type, wrong parameters"
+                }
 
-        if got_note is None:
-            return {"message": f"Note not found"}
-        if got_note.note_type != update_params["note_id"]:
-            return {"message": "Cannot change the note type"}
+            got_note = get_note(update_params["note_id"], db)
+            incoming_type = update_params.get("note_type")
 
-        is_updated = update_note(update_params["note_id"], db, update_params["title"], content)
-        if not is_updated:
-            raise {"message": "Failed to update note, same fields as before"}
+            if got_note is None:
+                return {"message": f"Note not found"}
 
-        requested_note = view_specific_note(update_params["note_id"], db)
-        if requested_note is None:
-            return {"message": f"Note {update_params["note_id"]} not found after update"}
+            if incoming_type is not None and NoteType(incoming_type) != existing_note.note_type:
+                return {"message": "Cannot change the note type"}
 
-        logger.info("Note was updated")
-        return {"message": "Note updated successfully", "updated note": requested_note}
+            '''
+            if got_note.note_type != update_params["note_id"]:
+                return {"message": "Cannot change the note type"}
+            '''
+            is_updated = update_note(update_params["note_id"], db, update_params["title"], content)
+            if not is_updated:
+                raise {"message": "Failed to update note, same fields as before"}
+
+            requested_note = view_specific_note(update_params["note_id"], db)
+            if requested_note is None:
+                return {"message": f"Note {update_params["note_id"]} not found after update"}
+
+            logger.info("Note was updated")
+            return {"message": "Note updated successfully", "updated note": requested_note}
 
     except NotFoundError as error:
         return {"message": str(error)}

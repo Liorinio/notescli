@@ -1,7 +1,11 @@
+import logging
 from notecli.app_types.json_request_models import NOTE_CREATE_FIELDS
 from notecli.app_types.note_type import NoteType
 from notecli.app_types.rabbitmq_validation_models import UpdateNoteParams
 from notecli.constants import REQUIRED_FIELD, FIRST_NOT_AVAILABLE_FIELD, SECOND_NOT_AVAILABLE_FIELD
+
+logger = logging.Logger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
 def request_content_checker_rabbit_update(note: UpdateNoteParams) -> str | list[str] | None:
@@ -14,30 +18,33 @@ def request_content_checker_rabbit_update(note: UpdateNoteParams) -> str | list[
     return None
 
 
-def check_note_create_parameters_rabbit_update(note: UpdateNoteParams, note_type: NoteType):
-        return (__are_fields_not_exist_for_type_rabbit__(note, note_type) and __check_type_content_match_rabbit__(note,note_type)
-                and __check_title_rabbit__(note) and __check_is_type_exist_rabbit__(note))
+def check_note_create_parameters_rabbit_update(note: dict, db_note_type: NoteType):
+    title_ok = __check_title_rabbit__(note)
+    content_ok = __check_type_content_match_rabbit__(note, db_note_type)
+    fields_ok = __are_fields_not_exist_for_type_rabbit__(note, db_note_type)
 
+    # Let's find out exactly what it wants!
+    required_key = NOTE_CREATE_FIELDS[db_note_type][REQUIRED_FIELD]
 
-def __check_type_content_match_rabbit__(note: UpdateNoteParams, note_type: NoteType):
-    if note["note_type"] != note_type:
-        return False
-    content_field = NOTE_CREATE_FIELDS[note_type][REQUIRED_FIELD]
-    return getattr(note, content_field, None) is not None
+    logger.info(f"[DEBUG] Title Check: {title_ok}")
+    logger.info(f"[DEBUG] Content Check: {content_ok} (It is strictly looking for the key: '{required_key}')")
+    logger.info(f"[DEBUG] Extra Fields Check: {fields_ok}")
 
+    return title_ok and content_ok and fields_ok
 
-def __check_title_rabbit__(note: UpdateNoteParams):
-    return note["title"] is not None
+def __check_type_content_match_rabbit__(note: dict, db_note_type: NoteType):
+    # Just look up what field this type of note requires and check if it's in the JSON
+    content_field = NOTE_CREATE_FIELDS[db_note_type][REQUIRED_FIELD]
+    return note.get(content_field) is not None
 
+def __check_title_rabbit__(note: dict):
+    return note.get("title") is not None
 
-def __check_is_type_exist_rabbit__(note: UpdateNoteParams):
-    return note["note_type"] is not None
+def __are_fields_not_exist_for_type_rabbit__(note: dict, db_note_type: NoteType):
+    first_field = NOTE_CREATE_FIELDS[db_note_type][FIRST_NOT_AVAILABLE_FIELD]
+    second_field = NOTE_CREATE_FIELDS[db_note_type][SECOND_NOT_AVAILABLE_FIELD]
 
+    possible_exist_first = note.get(first_field)
+    possible_exist_second = note.get(second_field)
 
-def __are_fields_not_exist_for_type_rabbit__(note: UpdateNoteParams, note_type: NoteType):
-    if note["note_type"] != note_type:
-        return False
-    possible_exist_first_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][FIRST_NOT_AVAILABLE_FIELD], None)
-    possible_exist_second_content_attr = getattr(note, NOTE_CREATE_FIELDS[note_type][SECOND_NOT_AVAILABLE_FIELD], None)
-
-    return possible_exist_first_content_attr is None and possible_exist_second_content_attr is None
+    return possible_exist_first is None and possible_exist_second is None

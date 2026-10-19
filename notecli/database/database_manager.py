@@ -85,7 +85,7 @@ class PostgresDb:
                         creation_time=row.created_at
                     )
 
-                    new_note.set_id(row.id)
+                    new_note.set_id(row.note_id)
 
                     notes.append(new_note)
 
