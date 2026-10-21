@@ -1,7 +1,9 @@
+# tells build tools how the project should be built
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
+# defines the project's metadata
 [project]
 name = "notecli"
 version = "2.6.0"
@@ -23,9 +25,11 @@ dependencies = [
     "urllib3>=2.8.0"
 ]
 
+# maps a shell command to the "main" python function
 [project.scripts]
 notecli = "notecli.cli:app"
 
+# configures how setuptools automatically discovers and bundles the Python packages in the project.
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["notecli*"]
