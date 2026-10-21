@@ -68,7 +68,7 @@ class MemoryStorage:
             for i in range(len(self.db_data)):
                 if self.db_data[i].note_id == note_id:
                     logger.info(f"Note number {note_id} was found, layer: memory_storage")
-                    return self.db_data.pop(note_id)
+                    return self.db_data.pop(i)
 
             logger.error("There is no such id in the database, layer: memory_storage")
             raise NotFoundError("Index not found")

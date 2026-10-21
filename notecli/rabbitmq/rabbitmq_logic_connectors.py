@@ -2,7 +2,7 @@ import logging
 from notecli.app_types.note_models import NoteSimple, NoteBookMark, NoteList
 from notecli.app_types.note_type import NoteType
 from notecli.app_types.rabbitmq_validation_models import NavigateNoteParams, AddNoteParams, DeleteNoteParams, \
-    GetAllNotesParams, SearchNoteParams, ViewNoteParams, UpdateNoteParams
+    GetAllNotesParams, SearchNoteParams, ViewNoteParams, UpdateNoteParams, MetadatNoteParams
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, \
@@ -159,7 +159,7 @@ def update_connector(update_params: UpdateNoteParams, db: MemoryStorage | None):
         raise {"message": f"Internal server error, {str(error)}"}
 
 
-def metadata_connector():
+def metadata_connector(*args, **kwargs):
     output = get_note_structure()
     logger.info("metadata showed")
     return {"metadata": output, "message": "Metadata showed"}

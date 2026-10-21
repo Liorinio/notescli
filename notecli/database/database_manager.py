@@ -95,6 +95,8 @@ class PostgresDb:
             session.close()
             logger.exception(exception)
             raise exception
+        finally:
+            session.commit()
 
     @staticmethod
     def save_to_db(note_store: NoteStore, optional_deleted_note_id: int | None = None) -> None:
@@ -152,6 +154,7 @@ class PostgresDb:
             raise ValueError(f"Note {removed_note_id} does not exist in the database, layer: DbManager")
 
         session.delete(deleted_note)
+        #session.commit()
 
         logger.info("Note number %s was deleted from the postgres db, layer: DbManager", removed_note_id)
 
