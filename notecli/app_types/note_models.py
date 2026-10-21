@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from typing import Any, Self
 import requests
+import certifi
 from notecli.app_types.note_base import NoteBase
 from notecli.app_types.note_type import serializedDict, NoteType, union_of_serialized_notes
 
