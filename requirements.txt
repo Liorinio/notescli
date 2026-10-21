@@ -11,4 +11,4 @@ redis
 pika
 python3-pika
 booktype
-certifi
+urllib3

@@ -2,7 +2,9 @@ from datetime import datetime
 import logging
 from typing import Any, Self
 import requests
-import certifi
+import urllib3
+from requests.exceptions import RequestException, Timeout
+
 from notecli.app_types.note_base import NoteBase
 from notecli.app_types.note_type import serializedDict, NoteType, union_of_serialized_notes
 
@@ -104,8 +106,19 @@ class NoteBookMark(NoteBase):
         Checks if the content is an actual url
         If so, returns a pair of status code and response body of the response, else return none
         """
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         if self.content_site_url.startswith(("http://", "https://")):
-            response = requests.get(self.content_site_url)
+            try:
+                response = requests.get(self.content_site_url, verify=False, timeout=5)
+
+                response.raise_for_status()
+
+            except Timeout:
+                return "Error: The website took too long to respond (timeout exceeded)."
+
+            except RequestException as e:
+                return f"Error: Could not connect to the website. Details: {str(e)}"
 
             try:
                 content = response.json()
