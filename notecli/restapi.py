@@ -10,15 +10,18 @@ from notecli.database.database_manager import PostgresDb
 from notecli.exceptions.exception_handler import validation_exception_handler
 from notecli.memory_storage.db_schema import MemoryStorage
 from notecli.services.note_service import retrieve_all_notes, get_note_structure
-from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, search_note, get_note
+from notecli.services.note_handlers import add_note, delete_note, view_specific_note, navigate_url, update_note, \
+    search_note, get_note
 from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, request_content_checker
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.utils.update_parameters_checker import check_note_create_parameters
+from fastapi.responses import JSONResponse, RedirectResponse
 
 db = None
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
@@ -36,6 +39,11 @@ app = FastAPI(lifespan=lifespan)
 app.openapi = replace_openapi
 app.middleware("http")(restapi_middleware)
 app.exception_handler(RequestValidationError)(validation_exception_handler)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/notes/metadata", status_code=200, tags=["Notes"])
@@ -56,25 +64,26 @@ def list_notes(request: Request, sort_type: str | None = None):
 
         if list_of_notes:
             logger.info("Notes listed")
-            return {"data": list_of_notes,"message": "Notes are listed"}
+            return {"data": list_of_notes, "message": "Notes are listed"}
 
         return {"message": "There are no notes because the database is empty"}
 
     except Exception as error:
-        raise HTTPException(status_code=400,detail=str(error))
+        raise HTTPException(status_code=400, detail=str(error))
 
 
 @app.post("/notes", status_code=201, tags=["Notes"])
-def add(request: Request,note: NoteCreate):
+def add(request: Request, note: NoteCreate):
     database = request.app.state.db
     content = request_content_checker(note)
 
     try:
         if not check_note_create_parameters(note, note.type):
             logger.info("The given requirements didn't allow to create a note of the given type")
-            raise HTTPException(status_code=400, detail="The given requirements didn't allow to create a note of the given type")
+            raise HTTPException(status_code=400,
+                                detail="The given requirements didn't allow to create a note of the given type")
         else:
-            added_note = add_note(note.type.name,note.title,content,database)
+            added_note = add_note(note.type.name, note.title, content, database)
             if not added_note:
                 logger.info("The given requirements didn't allow to create a note of the given type")
                 return {"message": "The given requirements didn't allow to create a note of the given type"}
@@ -85,15 +94,14 @@ def add(request: Request,note: NoteCreate):
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except KeyError as error:
-        raise HTTPException(status_code=400,detail=f"Invalid Key {error}")
+        raise HTTPException(status_code=400, detail=f"Invalid Key {error}")
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
 
 
-
-
 @app.get("/notes/search", status_code=200, tags=["Notes"], operation_id="searchNotes")
-def search(request: Request,title: str | None = None, start_date: datetime | None = None, end_date: datetime | None = None):
+def search(request: Request, title: str | None = None, start_date: datetime | None = None,
+           end_date: datetime | None = None):
     """Searches notes with query parameters"""
     database = request.app.state.db
     try:
@@ -106,7 +114,6 @@ def search(request: Request,title: str | None = None, start_date: datetime | Non
         raise HTTPException(status_code=404, detail=str(error))
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
-
 
 
 @app.get("/notes/{note_id}", status_code=200, tags=["Notes"])
@@ -136,25 +143,26 @@ def update(note_id: int, note_update: NoteUpdate, request: Request):
 
     try:
         if not check_note_create_parameters(note_update, note_update.type):
-            raise HTTPException(status_code=400,detail="The given requirements didn't allow to update a note of the given type, wrong parameters")
+            raise HTTPException(status_code=400,
+                                detail="The given requirements didn't allow to update a note of the given type, wrong parameters")
 
         got_note = get_note(note_id, database)
 
         if got_note is None:
-            raise HTTPException(status_code=404,detail=f"Note {note_id} not found")
+            raise HTTPException(status_code=404, detail=f"Note {note_id} not found")
         if got_note.note_type != note_update.type:
-            raise HTTPException(status_code=400,detail="Cannot change the note type")
+            raise HTTPException(status_code=400, detail="Cannot change the note type")
 
-        is_updated = update_note(note_id,database,note_update.title,content)
+        is_updated = update_note(note_id, database, note_update.title, content)
         if not is_updated:
-            raise HTTPException(status_code=400,detail="Failed to update note, same fields as before")
+            raise HTTPException(status_code=400, detail="Failed to update note, same fields as before")
 
         requested_note = view_specific_note(note_id, database)
         if requested_note is None:
-            raise HTTPException(status_code=404,detail=f"Note {note_id} not found after update")
+            raise HTTPException(status_code=404, detail=f"Note {note_id} not found after update")
 
         logger.info("Note was updated")
-        return {"message": "Note updated successfully","updated note": requested_note}
+        return {"message": "Note updated successfully", "updated note": requested_note}
 
     except NotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
@@ -180,6 +188,7 @@ def delete(note_id: int, request: Request):
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
     logger.info("Note was deleted")
+
 
 @app.get("/notes/{note_id}/navigate", status_code=200, tags=["Notes"])
 def navigate(note_id: int, request: Request):
