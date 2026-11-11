@@ -16,7 +16,7 @@ from notecli.utils.restapi_utils import replace_openapi, restapi_middleware, req
 from notecli.app_types.json_request_models import NoteCreate, NoteUpdate
 from notecli.exceptions.not_found_exception import NotFoundError
 from notecli.utils.update_parameters_checker import check_note_create_parameters
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 db = None
 logger = logging.getLogger(__name__)
